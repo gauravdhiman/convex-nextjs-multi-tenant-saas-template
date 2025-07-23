@@ -1,6 +1,10 @@
 "use client";
 
+import { useCurrentUser } from "@convex-dev/auth/react";
+import Link from "next/link";
+
 export default function Home() {
+  const { isLoading, isAuthenticated } = useCurrentUser();
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-8">
@@ -97,14 +101,24 @@ export default function Home() {
                 Ready to Build Your SaaS?
               </h2>
               <p className="text-gray-600 mb-6">
-                This template is currently under development. Authentication and multi-tenant features coming soon!
+                {isLoading 
+                  ? "Loading..." 
+                  : isAuthenticated 
+                    ? "Welcome back! You're signed in and ready to explore the features."
+                    : "Sign in to access the full SaaS template features and dashboard."
+                }
               </p>
-              <button className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors duration-200 shadow-lg hover:shadow-xl">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-                Get Started
-              </button>
+              {!isLoading && (
+                <Link 
+                  href={isAuthenticated ? "/dashboard" : "/auth"}
+                  className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                  {isAuthenticated ? "Go to Dashboard" : "Get Started"}
+                </Link>
+              )}
             </div>
           </div>
         </div>
