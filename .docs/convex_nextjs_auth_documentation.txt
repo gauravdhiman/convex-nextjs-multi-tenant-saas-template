@@ -1,0 +1,376 @@
+Authorization
+Next.js
+Server-side authentication in Next.js
+You can set up your Next.js App Router app to have access to the authentication state on the server.
+
+Setup
+Make sure your React providers and middleware are correctly set up first.
+
+Require authentication for certain routes
+By default, all routes can be accessed without authenticating. You can configure which routes require authentication in your middleware.ts:
+
+middleware.ts
+import {
+  convexAuthNextjsMiddleware,
+  createRouteMatcher,
+  nextjsMiddlewareRedirect,
+} from "@convex-dev/auth/nextjs/server";
+ 
+const isSignInPage = createRouteMatcher(["/signin"]);
+const isProtectedRoute = createRouteMatcher(["/product(.*)"]);
+ 
+export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
+  if (isSignInPage(request) && (await convexAuth.isAuthenticated())) {
+    return nextjsMiddlewareRedirect(request, "/product");
+  }
+  if (isProtectedRoute(request) && !(await convexAuth.isAuthenticated())) {
+    return nextjsMiddlewareRedirect(request, "/signin");
+  }
+});
+ 
+export const config = {
+  // The following matcher runs middleware on all routes
+  // except static assets.
+  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+};
+
+In general, you'll likely want to redirect when an unauthenticated user tries to access a route that requires authentication.
+
+To do this, you can pass a function to convexAuthNextjsMiddleware. This function can also be used to compose other middleware behaviors.
+
+This function has as arguments the NextRequest, the NextFetchEvent, and the ConvexAuthNextjsContext. convexAuth.isAuthenticated() and convexAuth.getToken() function similarly to isAuthenticatedNextjs and convexAuthNextjsToken, but should be used in middleware to ensure they reflect any updates to the request context from convexAuthNextjsMiddleware.
+
+Convex Auth provides an API and helper functions for implementing your middleware:
+
+createRouteMatcher is a helper function that uses the same syntax as the middleware config. You call it with a list of glob patterns, and it returns a function that given the NextRequest returns whether the route matches.
+
+nextjsMiddlewareRedirect is a simple shortcut for triggering redirects:
+
+export function nextjsMiddlewareRedirect(
+  request: NextRequest,
+  pathname: string,
+) {
+  const url = request.nextUrl.clone();
+  url.pathname = pathname;
+  return NextResponse.redirect(url);
+}
+
+You can inline this code if you need more control over the target URL.
+
+Configure cookie expiration
+You can configure the expiration of the authentication cookie by passing a cookieConfig option to convexAuthNextjsMiddleware.
+
+middleware.ts
+export default convexAuthNextjsMiddleware(
+  (request, { convexAuth }) => {
+    // ...
+  },
+  { cookieConfig: { maxAge: 60 * 60 * 24 * 30 } },
+); // 30 days
+
+If you don't set this option, the cookie will be considered a "session cookie" and be deleted when the browser session ends, which depends from browser to browser.
+
+Preloading and loading data
+To preload or load data on your Next.js server from your Convex backend, you can use preloadQuery and fetchQuery and the convexAuthNextjsToken function from @convex-dev/auth/nextjs/server:
+
+app/TasksWrapper.tsx
+import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
+import { preloadQuery } from "convex/nextjs";
+import { api } from "@/convex/_generated/api";
+import { Tasks } from "./Tasks";
+ 
+export async function TasksWrapper() {
+  const preloadedTasks = await preloadQuery(
+    api.tasks.list,
+    { list: "default" },
+    { token: await convexAuthNextjsToken() },
+  );
+  return <Tasks preloadedTasks={preloadedTasks} />;
+}
+
+Calling authenticated mutations and actions
+You can call Convex mutations and actions from Next.js Server Actions and POST or PUT Route Handlers.
+
+app/example/page.tsx
+import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
+import { api } from "@/convex/_generated/api";
+import { fetchMutation, fetchQuery } from "convex/nextjs";
+import { revalidatePath } from "next/cache";
+ 
+export default async function PureServerPage() {
+  const tasks = await fetchQuery(api.tasks.list, { list: "default" });
+  async function createTask(formData: FormData) {
+    "use server";
+ 
+    await fetchMutation(
+      api.tasks.create,
+      {
+        text: formData.get("text") as string,
+      },
+      { token: await convexAuthNextjsToken() },
+    );
+    revalidatePath("/example");
+  }
+  // render tasks and task creation form
+  return <form action={createTask}>...</form>;
+}
+
+Security notice: ConvexAuthNextjsServerProvider uses cookies to store authentication state. Therefore to prevent CSRF attacks you must not perform any side-effects from the Next.js server on GET requests. This means that only Convex queries are safe to call from Server Components and GET Route Handlers.
+
+Essentially, a malicious site might cause your user's browser to make an authenticated GET request without the user's permission, but it won't be able to read the response. Outside of GET requests, Convex Auth makes authentication state available only to same-origin requests.
+
+Convex Auth is not special here, and the same security considerations apply to most other authentication solutions.
+
+
+========
+
+
+API Reference
+nextjs
+server
+nextjs/server
+ConvexAuthNextjsServerProvider()
+Wrap your app with this provider in your root layout.tsx.
+
+Parameters
+Parameter	Type	Description
+props
+
+object
+
+‐
+
+props.apiRoute?
+
+string
+
+You can customize the route path that handles authentication actions via this prop and the apiRoute option to convexAuthNextjsMiddleWare.
+
+Defaults to /api/auth.
+
+props.storage?
+
+"localStorage" | "inMemory"
+
+Choose how the auth information will be stored on the client.
+
+Defaults to "localStorage".
+
+If you choose "inMemory", different browser tabs will not have a synchronized authentication state.
+
+props.storageNamespace?
+
+string
+
+Optional namespace for keys used to store tokens. The keys determine whether the tokens are shared or not.
+
+Any non-alphanumeric characters will be ignored.
+
+Defaults to process.env.NEXT_PUBLIC_CONVEX_URL.
+
+props.shouldHandleCode?
+
+() => boolean
+
+Callback to determine whether Convex Auth should handle the code parameter for a given request. If not provided, Convex Auth will handle all code parameters. If provided, Convex Auth will only handle code parameters when the callback returns true.
+
+props.verbose?
+
+boolean
+
+Turn on debugging logs.
+
+props.children
+
+ReactNode
+
+Children components can call Convex hooks and useAuthActions.
+
+Returns
+Promise<Element>
+
+Defined in
+src/nextjs/server/index.tsx:30
+
+convexAuthNextjsToken()
+Retrieve the token for authenticating calls to your Convex backend from Server Components, Server Actions and Route Handlers.
+
+Returns
+Promise<undefined | string>
+
+The token if the client is authenticated, otherwise undefined.
+
+Defined in
+src/nextjs/server/index.tsx:100
+
+isAuthenticatedNextjs()
+Whether the client is authenticated, which you can check in Server Actions, Route Handlers and Middleware.
+
+Avoid the pitfall of checking authentication state in layouts, since they won't stop nested pages from rendering.
+
+Parameters
+Parameter	Type
+options
+
+object
+
+options.convexUrl?
+
+string
+
+Returns
+Promise<boolean>
+
+Defined in
+src/nextjs/server/index.tsx:111
+
+ConvexAuthNextjsMiddlewareContext
+In convexAuthNextjsMiddleware, you can use this context to get the token and check if the client is authenticated in place of convexAuthNextjsToken and isAuthenticatedNextjs.
+
+export function convexAuthNextjsMiddleware(handler, options) {
+  return async (request, event, convexAuth) => {
+    if (!(await convexAuth.isAuthenticated())) {
+      return nextjsMiddlewareRedirect(request, "/login");
+    }
+  };
+}
+
+Type declaration
+getToken()
+Returns
+Promise<string | undefined>
+
+isAuthenticated()
+Returns
+Promise<boolean>
+
+Defined in
+src/nextjs/server/index.tsx:135
+
+ConvexAuthNextjsMiddlewareOptions
+Options for the convexAuthNextjsMiddleware function.
+
+Type declaration
+convexUrl?
+optional convexUrl: string
+
+The URL of the Convex deployment to use for authentication.
+
+Defaults to process.env.NEXT_PUBLIC_CONVEX_URL.
+
+apiRoute?
+optional apiRoute: string
+
+You can customize the route path that handles authentication actions via this option and the apiRoute prop of ConvexAuthNextjsProvider.
+
+Defaults to /api/auth.
+
+cookieConfig?
+The cookie config to use for the auth cookies.
+
+maxAge is the number of seconds the cookie will be valid for. If this is not set, the cookie will be a session cookie.
+
+See MDN Web Docs for more information.
+
+cookieConfig.maxAge
+verbose?
+optional verbose: boolean
+
+Turn on debugging logs.
+
+shouldHandleCode()?
+Callback to determine whether Convex Auth should handle the code parameter for a given request. If not provided, Convex Auth will handle all code parameters. If provided, Convex Auth will only handle code parameters when the callback returns true.
+
+Parameters
+Parameter	Type
+request
+
+NextRequest
+
+Returns
+boolean
+
+Defined in
+src/nextjs/server/index.tsx:143
+
+convexAuthNextjsMiddleware()
+Use in your middleware.ts to enable your Next.js app to use Convex Auth for authentication on the server.
+
+Parameters
+Parameter	Type	Description
+handler?
+
+(request, ctx) => NextMiddlewareResult | Promise<NextMiddlewareResult>
+
+A custom handler, which you can use to decide which routes should be accessible based on the client's authentication.
+
+options?
+
+ConvexAuthNextjsMiddlewareOptions
+
+‐
+
+Returns
+NextMiddleware
+
+A Next.js middleware.
+
+Defined in
+src/nextjs/server/index.tsx:184
+
+nextjsMiddlewareRedirect()
+Helper for redirecting to a different route from a Next.js middleware.
+
+return nextjsMiddlewareRedirect(request, "/login");
+
+Parameters
+Parameter	Type	Description
+request
+
+NextRequest
+
+The incoming request handled by the middleware.
+
+pathname
+
+string
+
+The route path to redirect to.
+
+Returns
+NextResponse<unknown>
+
+Defined in
+src/nextjs/server/index.tsx:301
+
+RouteMatcherParam
+See createRouteMatcher for more information.
+
+Defined in
+src/nextjs/server/routeMatcher.ts:44
+
+createRouteMatcher()
+Returns a function that accepts a Request object and returns whether the request matches the list of predefined routes that can be passed in as the first argument.
+
+You can use glob patterns to match multiple routes or a function to match against the request object. Path patterns and limited regular expressions are supported. For more information, see: https://www.npmjs.com/package/path-to-regexp/v/6.3.0
+
+Parameters
+Parameter	Type
+routes
+
+RouteMatcherParam
+
+Returns
+Function
+
+Parameters
+Parameter	Type
+req
+
+NextRequest
+
+Returns
+boolean
+
+Defined in
+src/nextjs/server/routeMatcher.ts:58
