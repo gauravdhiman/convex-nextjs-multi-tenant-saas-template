@@ -1,16 +1,42 @@
 "use client";
 
 import { useAuthActions } from "@convex-dev/auth/react";
+import { useRouter } from "next/navigation";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { useEffect, useState } from "react";
 
 export function OAuthButtons() {
   const { signIn } = useAuthActions();
+  const router = useRouter();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+  
+  const currentUser = useQuery(api.users.getCurrentUserQuery);
+  const isAuthenticated = !!currentUser;
 
-  const handleGoogleSignIn = () => {
-    void signIn("google");
+  // Handle redirect after successful authentication
+  useEffect(() => {
+    if (shouldRedirect && isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [shouldRedirect, isAuthenticated, router]);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signIn("google");
+      setShouldRedirect(true);
+    } catch (error) {
+      console.error("Google sign-in failed:", error);
+    }
   };
 
-  const handleGitHubSignIn = () => {
-    void signIn("github");
+  const handleGitHubSignIn = async () => {
+    try {
+      await signIn("github");
+      setShouldRedirect(true);
+    } catch (error) {
+      console.error("GitHub sign-in failed:", error);
+    }
   };
 
   return (

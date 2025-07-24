@@ -1,16 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { useRouter } from "next/navigation";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 export function SignupForm() {
   const { signIn } = useAuthActions();
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+  
+  const currentUser = useQuery(api.users.getCurrentUserQuery);
+  const isAuthenticated = !!currentUser;
+
+  // Handle redirect after successful authentication
+  useEffect(() => {
+    if (shouldRedirect && isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [shouldRedirect, isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,9 +51,9 @@ export function SignupForm() {
         password, 
         flow: "signUp" 
       });
+      setShouldRedirect(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
-    } finally {
       setIsLoading(false);
     }
   };

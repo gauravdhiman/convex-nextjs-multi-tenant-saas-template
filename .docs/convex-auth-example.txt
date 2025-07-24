@@ -1,0 +1,4416 @@
+Directory structure:
+└── get-convex-convex-auth-example/
+    ├── README.md
+    ├── components.json
+    ├── index.html
+    ├── package.json
+    ├── postcss.config.js
+    ├── setup.mjs
+    ├── tailwind.config.js
+    ├── tsconfig.json
+    ├── tsconfig.node.json
+    ├── vite.config.ts
+    ├── vitest.config.mts
+    ├── .eslintrc.cjs
+    ├── .prettierrc
+    ├── convex/
+    │   ├── README.md
+    │   ├── auth.config.ts
+    │   ├── auth.ts
+    │   ├── errors.ts
+    │   ├── helpers.ts
+    │   ├── http.ts
+    │   ├── messages.ts
+    │   ├── schema.ts
+    │   ├── tsconfig.json
+    │   ├── users.ts
+    │   ├── _generated/
+    │   │   ├── api.d.ts
+    │   │   ├── api.js
+    │   │   ├── dataModel.d.ts
+    │   │   ├── server.d.ts
+    │   │   └── server.js
+    │   ├── otp/
+    │   │   ├── ResendOTP.ts
+    │   │   ├── TwilioOTP.ts
+    │   │   ├── TwilioSDK.ts
+    │   │   ├── TwilioVerify.ts
+    │   │   └── VerificationCodeEmail.tsx
+    │   └── passwordReset/
+    │       ├── PasswordResetEmail.tsx
+    │       └── ResendOTPPasswordReset.ts
+    └── src/
+        ├── App.tsx
+        ├── index.css
+        ├── Layout.tsx
+        ├── main.tsx
+        ├── utils.ts
+        ├── vite-env.d.ts
+        ├── auth/
+        │   ├── CodeInput.tsx
+        │   ├── ResetPasswordWithEmailCode.tsx
+        │   ├── SignInFormAnonymous.tsx
+        │   ├── SignInFormEmailCode.tsx
+        │   ├── SignInFormEmailLink.tsx
+        │   ├── SignInFormPassword.tsx
+        │   ├── SignInFormPasswordAndCustomField.tsx
+        │   ├── SignInFormPasswordAndResetViaCode.tsx
+        │   ├── SignInFormPasswordAndVerifyViaCode.tsx
+        │   ├── SignInFormPasswordAndVerifyViaLink.tsx
+        │   ├── SignInFormPhoneCode.tsx
+        │   ├── SignInFormsShowcase.tsx
+        │   ├── SignInMethodDivider.tsx
+        │   ├── SignInWithEmailCode.tsx
+        │   ├── SignInWithOAuth.tsx
+        │   ├── SignInWithPassword.tsx
+        │   └── oauth/
+        │       ├── SignInWithApple.tsx
+        │       ├── SignInWithGitHub.tsx
+        │       └── SignInWithGoogle.tsx
+        ├── Chat/
+        │   ├── Chat.tsx
+        │   ├── ChatIntro.tsx
+        │   ├── Message.tsx
+        │   ├── MessageList.tsx
+        │   └── randomName.ts
+        ├── components/
+        │   ├── AppleLogo.tsx
+        │   ├── Code.tsx
+        │   ├── GitHubLogo.tsx
+        │   ├── GoogleLogo.tsx
+        │   ├── ThemeToggle.tsx
+        │   ├── UserMenu.tsx
+        │   ├── typography/
+        │   │   └── code.tsx
+        │   └── ui/
+        │       ├── button.tsx
+        │       ├── card.tsx
+        │       ├── dialog.tsx
+        │       ├── dropdown-menu.tsx
+        │       ├── input-otp.tsx
+        │       ├── input.tsx
+        │       ├── skeleton.tsx
+        │       ├── tabs.tsx
+        │       ├── toast.tsx
+        │       ├── toaster.tsx
+        │       ├── toggle-group.tsx
+        │       ├── toggle.tsx
+        │       └── use-toast.ts
+        └── lib/
+            └── utils.ts
+
+================================================
+FILE: README.md
+================================================
+# Convex Auth Example
+
+This project showcases [Convex Auth](https://labs.convex.dev/auth).
+
+It shows off several permutations of authentication methods. You can
+choose one of these to kick start your project.
+
+## Get started
+
+```sh
+npm install
+npm run dev
+```
+
+
+
+================================================
+FILE: components.json
+================================================
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "src/index.css",
+    "baseColor": "stone",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils"
+  }
+}
+
+
+
+================================================
+FILE: index.html
+================================================
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/convex.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Convex Auth Showcase</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
+
+
+================================================
+FILE: package.json
+================================================
+{
+  "name": "test-example",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm-run-all --parallel dev:frontend dev:backend",
+    "dev:frontend": "vite --open --port 3000",
+    "dev:backend": "convex dev",
+    "predev": "convex dev --until-success && convex dashboard",
+    "build": "tsc && vite build",
+    "lint": "tsc && tsc -p convex/tsconfig.json && eslint . --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:once": "vitest run",
+    "test:debug": "vitest --inspect-brk --no-file-parallelism",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@convex-dev/auth": "^0.0.80",
+    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-dropdown-menu": "^2.0.6",
+    "@radix-ui/react-icons": "^1.3.0",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-tabs": "^1.1.0",
+    "@radix-ui/react-toast": "^1.2.1",
+    "@radix-ui/react-toggle": "^1.0.3",
+    "@radix-ui/react-toggle-group": "^1.0.4",
+    "@react-email/components": "^0.0.20-canary.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "convex": "^1.12.2",
+    "input-otp": "^1.2.4",
+    "next-themes": "^0.3.0",
+    "react": "^18.3.0",
+    "react-colorful": "^5.6.1",
+    "react-dom": "^18.3.0",
+    "resend": "3.2.0",
+    "tailwind-merge": "^2.3.0",
+    "tailwindcss-animate": "^1.0.7",
+    "twilio": "^5.2.0"
+  },
+  "devDependencies": {
+    "@edge-runtime/vm": "^3.2.0",
+    "@types/node": "^20.12.12",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "@vitest/coverage-v8": "^1.6.0",
+    "autoprefixer": "^10.4.19",
+    "cheerio": "^1.0.0-rc.12",
+    "convex-test": "^0.0.32",
+    "eslint": "^8.57.0",
+    "eslint-plugin-no-only-tests": "^3.1.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.6",
+    "jsdom": "^24.1.0",
+    "npm-run-all": "^4.1.5",
+    "postcss": "^8.4.38",
+    "prettier": "3.2.5",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0",
+    "vitest": "^1.5.2"
+  }
+}
+
+
+
+================================================
+FILE: postcss.config.js
+================================================
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+
+
+
+================================================
+FILE: setup.mjs
+================================================
+/**
+ * This script runs `npx @convex-dev/auth` to help with setting up
+ * environment variables for Convex Auth.
+ *
+ * You can safely delete it and remove it from package.json scripts.
+ */
+
+import fs from "fs";
+import { config as loadEnvFile } from "dotenv";
+import { spawnSync } from "child_process";
+
+if (!fs.existsSync(".env.local")) {
+  // Something is off, skip the script.
+  process.exit(0);
+}
+
+const config = {};
+loadEnvFile({ path: ".env.local", processEnv: config });
+
+const runOnceWorkflow = process.argv.includes("--once");
+
+if (runOnceWorkflow && config.SETUP_SCRIPT_RAN !== undefined) {
+  // The script has already ran once, skip.
+  process.exit(0);
+}
+
+// The fallback should never be used.
+const deploymentName =
+  config.CONVEX_DEPLOYMENT.split(":").slice(-1)[0] ?? "<your deployment name>";
+
+const variables = JSON.stringify({
+  help:
+    "This template includes prebuilt sign-in via GitHub OAuth and " +
+    "magic links via Resend. " +
+    "This command can help you configure the credentials for these services " +
+    "via additional Convex environment variables.",
+  providers: [
+    {
+      name: "GitHub OAuth",
+      help:
+        "Create a GitHub OAuth App, follow the instruction here: " +
+        "https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app\n\n" +
+        `When you're asked for a callback URL use:\n\n` +
+        `  https://${deploymentName}.convex.site/api/auth/callback/github`,
+      variables: [
+        {
+          name: "AUTH_GITHUB_ID",
+          description: "the Client ID of your GitHub OAuth App",
+        },
+        {
+          name: "AUTH_GITHUB_SECRET",
+          description: "the generated client secret",
+        },
+      ],
+    },
+    {
+      name: "Resend",
+      help: "Sign up for Resend at https://resend.com/signup. Then create an API Key.",
+      variables: [
+        {
+          name: "AUTH_RESEND_KEY",
+          description: "the API Key",
+        },
+      ],
+    },
+  ],
+  success:
+    "You're all set. If you need to, you can rerun this command with `node setup.mjs`.",
+});
+
+console.error(
+  "You chose Convex Auth as the auth solution. " +
+    "This command will walk you through setting up " +
+    "the required Convex environment variables",
+);
+
+const result = spawnSync(
+  "npx",
+  ["@convex-dev/auth", "--variables", variables, "--skip-git-check"],
+  { stdio: "inherit" },
+);
+
+if (runOnceWorkflow) {
+  fs.writeFileSync(".env.local", `\nSETUP_SCRIPT_RAN=1\n`, { flag: "a" });
+}
+
+process.exit(result.status);
+
+
+
+================================================
+FILE: tailwind.config.js
+================================================
+/** @type {import('tailwindcss').Config} */
+export default {
+  darkMode: "selector",
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
+  safelist: ["dark"],
+  prefix: "",
+  theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
+    extend: {
+      colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
+};
+
+
+
+================================================
+FILE: tsconfig.json
+================================================
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    /* Import paths */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
+
+
+
+================================================
+FILE: tsconfig.node.json
+================================================
+{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true
+  },
+  "include": ["vite.config.ts", "vitest.config.ts"]
+}
+
+
+
+================================================
+FILE: vite.config.ts
+================================================
+import react from "@vitejs/plugin-react";
+import path from "path";
+import { defineConfig } from "vite";
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+});
+
+
+
+================================================
+FILE: vitest.config.mts
+================================================
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: {
+    environment: "edge-runtime",
+    server: { deps: { inline: ["convex-test"] } },
+  },
+});
+
+
+
+================================================
+FILE: .eslintrc.cjs
+================================================
+module.exports = {
+  root: true,
+  env: { browser: true, es2020: true, node: true },
+  extends: [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended-type-checked",
+    "plugin:react-hooks/recommended",
+  ],
+  ignorePatterns: [
+    "dist",
+    ".eslintrc.cjs",
+    "convex/_generated",
+    "postcss.config.js",
+    "tailwind.config.js",
+    "vite.config.ts",
+  ],
+  parser: "@typescript-eslint/parser",
+  parserOptions: {
+    EXPERIMENTAL_useProjectService: true,
+  },
+  plugins: ["react-refresh", "no-only-tests"],
+  rules: {
+    "react-refresh/only-export-components": [
+      "warn",
+      { allowConstantExport: true },
+    ],
+
+    // All of these overrides ease getting into
+    // TypeScript, and can be removed for stricter
+    // linting down the line.
+
+    // Only warn on unused variables, and ignore variables starting with `_`
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      { varsIgnorePattern: "^_", argsIgnorePattern: "^_" },
+    ],
+
+    // Allow escaping the compiler
+    "@typescript-eslint/ban-ts-comment": "error",
+
+    // Allow explicit `any`s
+    "@typescript-eslint/no-explicit-any": "off",
+
+    // START: Allow implicit `any`s
+    "@typescript-eslint/no-unsafe-argument": "off",
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-return": "off",
+    // END: Allow implicit `any`s
+
+    // Allow async functions without await
+    // for consistency (esp. Convex `handler`s)
+    "@typescript-eslint/require-await": "off",
+
+    "no-only-tests/no-only-tests": "warn",
+  },
+};
+
+
+
+================================================
+FILE: .prettierrc
+================================================
+{}
+
+
+
+================================================
+FILE: convex/README.md
+================================================
+# Welcome to your Convex functions directory!
+
+Write your Convex functions here. See
+https://docs.convex.dev/using/writing-convex-functions for more.
+
+A query function that takes two arguments looks like:
+
+```ts
+// functions.js
+import { query } from "./_generated/server";
+import { v } from "convex/values";
+
+export const myQueryFunction = query({
+  // Validators for arguments.
+  args: {
+    first: v.number(),
+    second: v.string(),
+  },
+
+  // Function implementation.
+  handler: async (ctx, args) => {
+    // Read the database as many times as you need here.
+    // See https://docs.convex.dev/database/reading-data.
+    const documents = await ctx.db.query("tablename").collect();
+
+    // Arguments passed from the client are properties of the args object.
+    console.log(args.first, args.second);
+
+    // Write arbitrary JavaScript here: filter, aggregate, build derived data,
+    // remove non-public properties, or create new objects.
+    return documents;
+  },
+});
+```
+
+Using this query function in a React component looks like:
+
+```ts
+const data = useQuery(api.functions.myQueryFunction, {
+  first: 10,
+  second: "hello",
+});
+```
+
+A mutation function looks like:
+
+```ts
+// functions.js
+import { mutation } from "./_generated/server";
+import { v } from "convex/values";
+
+export const myMutationFunction = mutation({
+  // Validators for arguments.
+  args: {
+    first: v.string(),
+    second: v.string(),
+  },
+
+  // Function implementation.
+  handler: async (ctx, args) => {
+    // Insert or modify documents in the database here.
+    // Mutations can also read from the database like queries.
+    // See https://docs.convex.dev/database/writing-data.
+    const message = { body: args.first, author: args.second };
+    const id = await ctx.db.insert("messages", message);
+
+    // Optionally, return a value from your mutation.
+    return await ctx.db.get(id);
+  },
+});
+```
+
+Using this mutation function in a React component looks like:
+
+```ts
+const mutation = useMutation(api.functions.myMutationFunction);
+function handleButtonPress() {
+  // fire and forget, the most common way to use mutations
+  mutation({ first: "Hello!", second: "me" });
+  // OR
+  // use the result once the mutation has completed
+  mutation({ first: "Hello!", second: "me" }).then((result) =>
+    console.log(result)
+  );
+}
+```
+
+Use the Convex CLI to push your functions to a deployment. See everything
+the Convex CLI can do by running `npx convex -h` in your project root
+directory. To learn more, launch the docs with `npx convex docs`.
+
+
+
+================================================
+FILE: convex/auth.config.ts
+================================================
+export default {
+  providers: [
+    {
+      domain: process.env.CONVEX_SITE_URL,
+      applicationID: "convex",
+    },
+  ],
+};
+
+
+
+================================================
+FILE: convex/auth.ts
+================================================
+import { INVALID_PASSWORD } from "./errors.js"
+import GitHub from "@auth/core/providers/github";
+import Google from "@auth/core/providers/google";
+import Resend from "@auth/core/providers/resend";
+import Apple from "@auth/core/providers/apple";
+import { Anonymous } from "@convex-dev/auth/providers/Anonymous";
+import { Password } from "@convex-dev/auth/providers/Password";
+import { ConvexError } from "convex/values";
+import { convexAuth } from "@convex-dev/auth/server";
+import { ResendOTP } from "./otp/ResendOTP";
+import { TwilioOTP } from "./otp/TwilioOTP";
+import { TwilioVerify } from "./otp/TwilioVerify";
+import { ResendOTPPasswordReset } from "./passwordReset/ResendOTPPasswordReset";
+import { DataModel } from "./_generated/dataModel.js";
+
+export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
+  providers: [
+    GitHub,
+    Google,
+    Apple({
+      clientSecret: process.env.AUTH_APPLE_SECRET!,
+      client: {
+        token_endpoint_auth_method: "client_secret_post",
+      },
+      profile: undefined,
+    }),
+    Resend({
+      from: process.env.AUTH_EMAIL ?? "My App <onboarding@resend.dev>",
+    }),
+    ResendOTP,
+    TwilioVerify,
+    TwilioOTP,
+    Password,
+    // Sample password auth with a custom parameter provided during sign-up
+    // flow and custom password validation requirements (at least six chars
+    // with at least one number, upper and lower case chars).
+    Password<DataModel>({
+      id: "password-custom",
+      profile(params, _ctx) {
+        return {
+          email: params.email as string,
+          favoriteColor: params.favoriteColor as string,
+        };
+      },
+      validatePasswordRequirements: (password: string) => {
+        if (
+          !password ||
+          password.length < 6 ||
+          !/\d/.test(password) ||
+          !/[a-z]/.test(password) ||
+          !/[A-Z]/.test(password)
+        ) {
+          throw new ConvexError(INVALID_PASSWORD);
+        }
+      },
+    }),
+    Password({ id: "password-with-reset", reset: ResendOTPPasswordReset }),
+    Password({
+      id: "password-code",
+      reset: ResendOTPPasswordReset,
+      verify: ResendOTP,
+    }),
+    // This one only makes sense with routing, ignore for now:
+    Password({ id: "password-link", verify: Resend }),
+    Anonymous,
+  ],
+});
+
+
+
+================================================
+FILE: convex/errors.ts
+================================================
+export const INVALID_PASSWORD = "INVALID_PASSWORD";
+
+
+
+================================================
+FILE: convex/helpers.ts
+================================================
+import { authTables } from "@convex-dev/auth/server";
+import { internalMutation } from "./_generated/server";
+import { v } from "convex/values";
+
+// Deletes all auth-related data.
+// Just for demoing purposes, feel free to delete.
+export const reset = internalMutation({
+  args: { forReal: v.string() },
+  handler: async (ctx, args) => {
+    if (args.forReal !== "I know what I'm doing") {
+      throw new Error("You must know what you're doing to reset the database.");
+    }
+    for (const table of Object.keys(authTables)) {
+      for (const { _id } of await ctx.db.query(table as any).collect()) {
+        await ctx.db.delete(_id);
+      }
+    }
+  },
+});
+
+
+
+================================================
+FILE: convex/http.ts
+================================================
+import { httpRouter } from "convex/server";
+import { auth } from "./auth";
+
+const http = httpRouter();
+
+auth.addHttpRoutes(http);
+
+export default http;
+
+
+
+================================================
+FILE: convex/messages.ts
+================================================
+import { query, mutation } from "./_generated/server";
+import { v } from "convex/values";
+import { getAuthUserId } from "@convex-dev/auth/server";
+
+export const list = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+    // Grab the most recent messages.
+    const messages = await ctx.db.query("messages").order("desc").take(100);
+    // Reverse the list so that it's in a chronological order.
+    return Promise.all(
+      messages.reverse().map(async (message) => {
+        const { name, email, phone } = (await ctx.db.get(message.userId))!;
+        return { ...message, author: name ?? email ?? phone ?? "Anonymous" };
+      }),
+    );
+  },
+});
+
+export const send = mutation({
+  args: { body: v.string() },
+  handler: async (ctx, { body }) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+    // Send a new message.
+    await ctx.db.insert("messages", { body, userId });
+  },
+});
+
+
+
+================================================
+FILE: convex/schema.ts
+================================================
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
+
+export default defineSchema({
+  ...authTables,
+  users: defineTable({
+    name: v.optional(v.string()),
+    image: v.optional(v.string()),
+    email: v.optional(v.string()),
+    emailVerificationTime: v.optional(v.number()),
+    phone: v.optional(v.string()),
+    phoneVerificationTime: v.optional(v.number()),
+    isAnonymous: v.optional(v.boolean()),
+    // Custom field.
+    favoriteColor: v.optional(v.string()),
+  })
+    .index("email", ["email"])
+    .index("phone", ["phone"]),
+  messages: defineTable({
+    userId: v.id("users"),
+    body: v.string(),
+  }),
+});
+
+
+
+================================================
+FILE: convex/tsconfig.json
+================================================
+{
+  /* This TypeScript project config describes the environment that
+   * Convex functions run in and is used to typecheck them.
+   * You can modify it, but some settings required to use Convex.
+   */
+  "compilerOptions": {
+    /* These settings are not required by Convex and can be modified. */
+    "allowJs": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+
+    /* These compiler options are required by Convex */
+    "target": "ESNext",
+    "lib": ["ES2021", "dom", "ES2023.Array"],
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "isolatedModules": true,
+    "noEmit": true
+  },
+  "include": ["./**/*"],
+  "exclude": ["./_generated"]
+}
+
+
+
+================================================
+FILE: convex/users.ts
+================================================
+import { query } from "./_generated/server";
+import { getAuthUserId } from "@convex-dev/auth/server";
+
+export const viewer = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    return userId !== null ? ctx.db.get(userId) : null;
+  },
+});
+
+
+
+================================================
+FILE: convex/_generated/api.d.ts
+================================================
+/* eslint-disable */
+/**
+ * Generated `api` utility.
+ *
+ * THIS CODE IS AUTOMATICALLY GENERATED.
+ *
+ * To regenerate, run `npx convex dev`.
+ * @module
+ */
+
+import type {
+  ApiFromModules,
+  FilterApi,
+  FunctionReference,
+} from "convex/server";
+import type * as auth from "../auth.js";
+import type * as errors from "../errors.js";
+import type * as helpers from "../helpers.js";
+import type * as http from "../http.js";
+import type * as messages from "../messages.js";
+import type * as otp_FakePhone from "../otp/FakePhone.js";
+import type * as otp_ResendOTP from "../otp/ResendOTP.js";
+import type * as otp_TwilioOTP from "../otp/TwilioOTP.js";
+import type * as otp_TwilioSDK from "../otp/TwilioSDK.js";
+import type * as otp_TwilioVerify from "../otp/TwilioVerify.js";
+import type * as otp_VerificationCodeEmail from "../otp/VerificationCodeEmail.js";
+import type * as passwordReset_PasswordResetEmail from "../passwordReset/PasswordResetEmail.js";
+import type * as passwordReset_ResendOTPPasswordReset from "../passwordReset/ResendOTPPasswordReset.js";
+import type * as users from "../users.js";
+
+/**
+ * A utility for referencing Convex functions in your app's API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = api.myModule.myFunction;
+ * ```
+ */
+declare const fullApi: ApiFromModules<{
+  auth: typeof auth;
+  errors: typeof errors;
+  helpers: typeof helpers;
+  http: typeof http;
+  messages: typeof messages;
+  "otp/FakePhone": typeof otp_FakePhone;
+  "otp/ResendOTP": typeof otp_ResendOTP;
+  "otp/TwilioOTP": typeof otp_TwilioOTP;
+  "otp/TwilioSDK": typeof otp_TwilioSDK;
+  "otp/TwilioVerify": typeof otp_TwilioVerify;
+  "otp/VerificationCodeEmail": typeof otp_VerificationCodeEmail;
+  "passwordReset/PasswordResetEmail": typeof passwordReset_PasswordResetEmail;
+  "passwordReset/ResendOTPPasswordReset": typeof passwordReset_ResendOTPPasswordReset;
+  users: typeof users;
+}>;
+export declare const api: FilterApi<
+  typeof fullApi,
+  FunctionReference<any, "public">
+>;
+export declare const internal: FilterApi<
+  typeof fullApi,
+  FunctionReference<any, "internal">
+>;
+
+
+
+================================================
+FILE: convex/_generated/api.js
+================================================
+/* eslint-disable */
+/**
+ * Generated `api` utility.
+ *
+ * THIS CODE IS AUTOMATICALLY GENERATED.
+ *
+ * To regenerate, run `npx convex dev`.
+ * @module
+ */
+
+import { anyApi } from "convex/server";
+
+/**
+ * A utility for referencing Convex functions in your app's API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = api.myModule.myFunction;
+ * ```
+ */
+export const api = anyApi;
+export const internal = anyApi;
+
+
+
+================================================
+FILE: convex/_generated/dataModel.d.ts
+================================================
+/* eslint-disable */
+/**
+ * Generated data model types.
+ *
+ * THIS CODE IS AUTOMATICALLY GENERATED.
+ *
+ * To regenerate, run `npx convex dev`.
+ * @module
+ */
+
+import type {
+  DataModelFromSchemaDefinition,
+  DocumentByName,
+  TableNamesInDataModel,
+  SystemTableNames,
+} from "convex/server";
+import type { GenericId } from "convex/values";
+import schema from "../schema.js";
+
+/**
+ * The names of all of your Convex tables.
+ */
+export type TableNames = TableNamesInDataModel<DataModel>;
+
+/**
+ * The type of a document stored in Convex.
+ *
+ * @typeParam TableName - A string literal type of the table name (like "users").
+ */
+export type Doc<TableName extends TableNames> = DocumentByName<
+  DataModel,
+  TableName
+>;
+
+/**
+ * An identifier for a document in Convex.
+ *
+ * Convex documents are uniquely identified by their `Id`, which is accessible
+ * on the `_id` field. To learn more, see [Document IDs](https://docs.convex.dev/using/document-ids).
+ *
+ * Documents can be loaded using `db.get(id)` in query and mutation functions.
+ *
+ * IDs are just strings at runtime, but this type can be used to distinguish them from other
+ * strings when type checking.
+ *
+ * @typeParam TableName - A string literal type of the table name (like "users").
+ */
+export type Id<TableName extends TableNames | SystemTableNames> =
+  GenericId<TableName>;
+
+/**
+ * A type describing your Convex data model.
+ *
+ * This type includes information about what tables you have, the type of
+ * documents stored in those tables, and the indexes defined on them.
+ *
+ * This type is used to parameterize methods like `queryGeneric` and
+ * `mutationGeneric` to make them type-safe.
+ */
+export type DataModel = DataModelFromSchemaDefinition<typeof schema>;
+
+
+
+================================================
+FILE: convex/_generated/server.d.ts
+================================================
+/* eslint-disable */
+/**
+ * Generated utilities for implementing server-side Convex query and mutation functions.
+ *
+ * THIS CODE IS AUTOMATICALLY GENERATED.
+ *
+ * To regenerate, run `npx convex dev`.
+ * @module
+ */
+
+import {
+  ActionBuilder,
+  HttpActionBuilder,
+  MutationBuilder,
+  QueryBuilder,
+  GenericActionCtx,
+  GenericMutationCtx,
+  GenericQueryCtx,
+  GenericDatabaseReader,
+  GenericDatabaseWriter,
+} from "convex/server";
+import type { DataModel } from "./dataModel.js";
+
+/**
+ * Define a query in this Convex app's public API.
+ *
+ * This function will be allowed to read your Convex database and will be accessible from the client.
+ *
+ * @param func - The query function. It receives a {@link QueryCtx} as its first argument.
+ * @returns The wrapped query. Include this as an `export` to name it and make it accessible.
+ */
+export declare const query: QueryBuilder<DataModel, "public">;
+
+/**
+ * Define a query that is only accessible from other Convex functions (but not from the client).
+ *
+ * This function will be allowed to read from your Convex database. It will not be accessible from the client.
+ *
+ * @param func - The query function. It receives a {@link QueryCtx} as its first argument.
+ * @returns The wrapped query. Include this as an `export` to name it and make it accessible.
+ */
+export declare const internalQuery: QueryBuilder<DataModel, "internal">;
+
+/**
+ * Define a mutation in this Convex app's public API.
+ *
+ * This function will be allowed to modify your Convex database and will be accessible from the client.
+ *
+ * @param func - The mutation function. It receives a {@link MutationCtx} as its first argument.
+ * @returns The wrapped mutation. Include this as an `export` to name it and make it accessible.
+ */
+export declare const mutation: MutationBuilder<DataModel, "public">;
+
+/**
+ * Define a mutation that is only accessible from other Convex functions (but not from the client).
+ *
+ * This function will be allowed to modify your Convex database. It will not be accessible from the client.
+ *
+ * @param func - The mutation function. It receives a {@link MutationCtx} as its first argument.
+ * @returns The wrapped mutation. Include this as an `export` to name it and make it accessible.
+ */
+export declare const internalMutation: MutationBuilder<DataModel, "internal">;
+
+/**
+ * Define an action in this Convex app's public API.
+ *
+ * An action is a function which can execute any JavaScript code, including non-deterministic
+ * code and code with side-effects, like calling third-party services.
+ * They can be run in Convex's JavaScript environment or in Node.js using the "use node" directive.
+ * They can interact with the database indirectly by calling queries and mutations using the {@link ActionCtx}.
+ *
+ * @param func - The action. It receives an {@link ActionCtx} as its first argument.
+ * @returns The wrapped action. Include this as an `export` to name it and make it accessible.
+ */
+export declare const action: ActionBuilder<DataModel, "public">;
+
+/**
+ * Define an action that is only accessible from other Convex functions (but not from the client).
+ *
+ * @param func - The function. It receives an {@link ActionCtx} as its first argument.
+ * @returns The wrapped function. Include this as an `export` to name it and make it accessible.
+ */
+export declare const internalAction: ActionBuilder<DataModel, "internal">;
+
+/**
+ * Define an HTTP action.
+ *
+ * This function will be used to respond to HTTP requests received by a Convex
+ * deployment if the requests matches the path and method where this action
+ * is routed. Be sure to route your action in `convex/http.js`.
+ *
+ * @param func - The function. It receives an {@link ActionCtx} as its first argument.
+ * @returns The wrapped function. Import this function from `convex/http.js` and route it to hook it up.
+ */
+export declare const httpAction: HttpActionBuilder;
+
+/**
+ * A set of services for use within Convex query functions.
+ *
+ * The query context is passed as the first argument to any Convex query
+ * function run on the server.
+ *
+ * This differs from the {@link MutationCtx} because all of the services are
+ * read-only.
+ */
+export type QueryCtx = GenericQueryCtx<DataModel>;
+
+/**
+ * A set of services for use within Convex mutation functions.
+ *
+ * The mutation context is passed as the first argument to any Convex mutation
+ * function run on the server.
+ */
+export type MutationCtx = GenericMutationCtx<DataModel>;
+
+/**
+ * A set of services for use within Convex action functions.
+ *
+ * The action context is passed as the first argument to any Convex action
+ * function run on the server.
+ */
+export type ActionCtx = GenericActionCtx<DataModel>;
+
+/**
+ * An interface to read from the database within Convex query functions.
+ *
+ * The two entry points are {@link DatabaseReader.get}, which fetches a single
+ * document by its {@link Id}, or {@link DatabaseReader.query}, which starts
+ * building a query.
+ */
+export type DatabaseReader = GenericDatabaseReader<DataModel>;
+
+/**
+ * An interface to read from and write to the database within Convex mutation
+ * functions.
+ *
+ * Convex guarantees that all writes within a single mutation are
+ * executed atomically, so you never have to worry about partial writes leaving
+ * your data in an inconsistent state. See [the Convex Guide](https://docs.convex.dev/understanding/convex-fundamentals/functions#atomicity-and-optimistic-concurrency-control)
+ * for the guarantees Convex provides your functions.
+ */
+export type DatabaseWriter = GenericDatabaseWriter<DataModel>;
+
+
+
+================================================
+FILE: convex/_generated/server.js
+================================================
+/* eslint-disable */
+/**
+ * Generated utilities for implementing server-side Convex query and mutation functions.
+ *
+ * THIS CODE IS AUTOMATICALLY GENERATED.
+ *
+ * To regenerate, run `npx convex dev`.
+ * @module
+ */
+
+import {
+  actionGeneric,
+  httpActionGeneric,
+  queryGeneric,
+  mutationGeneric,
+  internalActionGeneric,
+  internalMutationGeneric,
+  internalQueryGeneric,
+} from "convex/server";
+
+/**
+ * Define a query in this Convex app's public API.
+ *
+ * This function will be allowed to read your Convex database and will be accessible from the client.
+ *
+ * @param func - The query function. It receives a {@link QueryCtx} as its first argument.
+ * @returns The wrapped query. Include this as an `export` to name it and make it accessible.
+ */
+export const query = queryGeneric;
+
+/**
+ * Define a query that is only accessible from other Convex functions (but not from the client).
+ *
+ * This function will be allowed to read from your Convex database. It will not be accessible from the client.
+ *
+ * @param func - The query function. It receives a {@link QueryCtx} as its first argument.
+ * @returns The wrapped query. Include this as an `export` to name it and make it accessible.
+ */
+export const internalQuery = internalQueryGeneric;
+
+/**
+ * Define a mutation in this Convex app's public API.
+ *
+ * This function will be allowed to modify your Convex database and will be accessible from the client.
+ *
+ * @param func - The mutation function. It receives a {@link MutationCtx} as its first argument.
+ * @returns The wrapped mutation. Include this as an `export` to name it and make it accessible.
+ */
+export const mutation = mutationGeneric;
+
+/**
+ * Define a mutation that is only accessible from other Convex functions (but not from the client).
+ *
+ * This function will be allowed to modify your Convex database. It will not be accessible from the client.
+ *
+ * @param func - The mutation function. It receives a {@link MutationCtx} as its first argument.
+ * @returns The wrapped mutation. Include this as an `export` to name it and make it accessible.
+ */
+export const internalMutation = internalMutationGeneric;
+
+/**
+ * Define an action in this Convex app's public API.
+ *
+ * An action is a function which can execute any JavaScript code, including non-deterministic
+ * code and code with side-effects, like calling third-party services.
+ * They can be run in Convex's JavaScript environment or in Node.js using the "use node" directive.
+ * They can interact with the database indirectly by calling queries and mutations using the {@link ActionCtx}.
+ *
+ * @param func - The action. It receives an {@link ActionCtx} as its first argument.
+ * @returns The wrapped action. Include this as an `export` to name it and make it accessible.
+ */
+export const action = actionGeneric;
+
+/**
+ * Define an action that is only accessible from other Convex functions (but not from the client).
+ *
+ * @param func - The function. It receives an {@link ActionCtx} as its first argument.
+ * @returns The wrapped function. Include this as an `export` to name it and make it accessible.
+ */
+export const internalAction = internalActionGeneric;
+
+/**
+ * Define a Convex HTTP action.
+ *
+ * @param func - The function. It receives an {@link ActionCtx} as its first argument, and a `Request` object
+ * as its second.
+ * @returns The wrapped endpoint function. Route a URL path to this function in `convex/http.js`.
+ */
+export const httpAction = httpActionGeneric;
+
+
+
+================================================
+FILE: convex/otp/ResendOTP.ts
+================================================
+import { Email } from "@convex-dev/auth/providers/Email";
+import { alphabet, generateRandomString } from "oslo/crypto";
+import { Resend as ResendAPI } from "resend";
+import { VerificationCodeEmail } from "./VerificationCodeEmail";
+
+export const ResendOTP = Email({
+  id: "resend-otp",
+  apiKey: process.env.AUTH_RESEND_KEY,
+  maxAge: 60 * 20,
+  async generateVerificationToken() {
+    return generateRandomString(8, alphabet("0-9"));
+  },
+  async sendVerificationRequest({
+    identifier: email,
+    provider,
+    token,
+    expires,
+  }) {
+    const resend = new ResendAPI(provider.apiKey);
+    const { error } = await resend.emails.send({
+      // TODO: Update with your app name and email address
+      from: process.env.AUTH_EMAIL ?? "My App <onboarding@resend.dev>",
+      to: [email],
+      // TODO: Update with your app name
+      subject: `Sign in to My App`,
+      react: VerificationCodeEmail({ code: token, expires }),
+    });
+
+    if (error) {
+      throw new Error(JSON.stringify(error));
+    }
+  },
+});
+
+
+
+================================================
+FILE: convex/otp/TwilioOTP.ts
+================================================
+import { Phone } from "@convex-dev/auth/providers/Phone";
+import { internal } from "../_generated/api";
+import { alphabet, generateRandomString } from "oslo/crypto";
+
+/**
+ * Uses Twilio messaging to send an OTP code.
+ *
+ * You can only send messages to Verified Caller IDs during the
+ * Twilio trial period.
+ *
+ * Sign up for Twilio, get a phone number, and then configure
+ * these Convex environment variables:
+ * - AUTH_TWILIO_ACCOUNT_SID
+ * - AUTH_TWILIO_AUTH_TOKEN
+ * - AUTH_TWILIO_FROM_NUMBER
+ */
+export const TwilioOTP = Phone({
+  id: "twilio-otp",
+  maxAge: 60 * 20, // 20 minutes
+  async generateVerificationToken() {
+    return generateRandomString(6, alphabet("0-9"));
+  },
+  async sendVerificationRequest({ identifier: phone, token }, ctx) {
+    if (process.env.AUTH_TWILIO_FROM_NUMBER === undefined) {
+      throw new Error("AUTH_TWILIO_FROM_NUMBER is missing for twilio-otp");
+    }
+    if (phone === undefined) {
+      throw new Error("`phone` param is missing for twilio-otp");
+    }
+    await ctx.runAction(internal.otp.TwilioSDK.message, {
+      from: process.env.AUTH_TWILIO_FROM_NUMBER,
+      to: phone,
+      code: token,
+    });
+  },
+});
+
+
+
+================================================
+FILE: convex/otp/TwilioSDK.ts
+================================================
+"use node";
+
+import { createAccount } from "@convex-dev/auth/server";
+import { v } from "convex/values";
+import twilio from "twilio";
+import { internalAction } from "../_generated/server";
+
+export const verify = internalAction({
+  args: {
+    phone: v.string(),
+    code: v.optional(v.string()),
+  },
+  handler: async (ctx, { code, phone }) => {
+    if (code === undefined) {
+      await twilioVerify().verifications.create({
+        to: phone,
+        channel: "sms",
+      });
+      return null;
+    }
+    const { status } = await twilioVerify().verificationChecks.create({
+      to: phone,
+      code,
+    });
+    if (status !== "approved") {
+      console.error(status);
+      throw new Error("Code could not be verified");
+    }
+    const { user } = await createAccount(ctx, {
+      provider: "twilio",
+      account: {
+        id: phone,
+      },
+      profile: {
+        phone,
+      },
+      shouldLinkViaPhone: true,
+    });
+    return { userId: user._id };
+  },
+});
+
+export const message = internalAction({
+  args: {
+    from: v.string(),
+    to: v.string(),
+    code: v.optional(v.string()),
+  },
+  handler: async (_ctx, { code, from, to }) => {
+    if (code === undefined) {
+      throw new Error("Code is required");
+    }
+    await twilioClient().messages.create({
+      from,
+      to,
+      body: `Sign in to MyApp. Your code is ${code}`,
+    });
+  },
+});
+
+function twilioVerify() {
+  if (process.env.AUTH_TWILIO_SERVICE_SID === undefined) {
+    throw new Error("Environment variable AUTH_TWILIO_SERVICE_SID is missing");
+  }
+  return twilioClient().verify.v2.services(process.env.AUTH_TWILIO_SERVICE_SID);
+}
+
+function twilioClient() {
+  if (process.env.AUTH_TWILIO_ACCOUNT_SID === undefined) {
+    throw new Error("Environment variable AUTH_TWILIO_ACCOUNT_SID is missing");
+  }
+  if (process.env.AUTH_TWILIO_AUTH_TOKEN === undefined) {
+    throw new Error("Environment variable AUTH_TWILIO_AUTH_TOKEN is missing");
+  }
+  return twilio(
+    process.env.AUTH_TWILIO_ACCOUNT_SID,
+    process.env.AUTH_TWILIO_AUTH_TOKEN,
+  );
+}
+
+
+
+================================================
+FILE: convex/otp/TwilioVerify.ts
+================================================
+import { ConvexCredentials } from "@convex-dev/auth/providers/ConvexCredentials";
+import { internal } from "../_generated/api";
+import { DataModel } from "../_generated/dataModel";
+
+/**
+ * Uses Twilio Verify service.
+ *
+ * Sign up for Twilio, create a Verify service, and then configure
+ * these Convex environment variables:
+ * - AUTH_TWILIO_ACCOUNT_SID
+ * - AUTH_TWILIO_AUTH_TOKEN
+ * - AUTH_TWILIO_SERVICE_SID
+ */
+export function TwilioVerify() {
+  return ConvexCredentials<DataModel>({
+    id: "twilio",
+    authorize: async (params, ctx) => {
+      if (params.phone === undefined) {
+        throw new Error("`phone` param is missing for Twilio");
+      }
+      return await ctx.runAction(internal.otp.TwilioSDK.verify, {
+        phone: params.phone as string,
+        code: params.code as string | undefined,
+      });
+    },
+  });
+}
+
+
+
+================================================
+FILE: convex/otp/VerificationCodeEmail.tsx
+================================================
+import {
+  Container,
+  Head,
+  Heading,
+  Html,
+  Section,
+  Tailwind,
+  Text,
+} from "@react-email/components";
+
+export function VerificationCodeEmail({
+  code,
+  expires,
+}: {
+  code: string;
+  expires: Date;
+}) {
+  return (
+    <Html>
+      <Tailwind>
+        <Head />
+        <Container className="container px-20 font-sans">
+          <Heading className="text-xl font-bold mb-4">
+            {/* TODO: Update with your app name */}
+            Sign in to My App
+          </Heading>
+          <Text className="text-sm">
+            Please enter the following code on the sign in page.
+          </Text>
+          <Section className="text-center">
+            <Text className="font-semibold">Verification code</Text>
+            <Text className="font-bold text-4xl">{code}</Text>
+            <Text>
+              (This code is valid for{" "}
+              {Math.floor((+expires - Date.now()) / (60 * 60 * 1000))} hours)
+            </Text>
+          </Section>
+        </Container>
+      </Tailwind>
+    </Html>
+  );
+}
+
+
+
+================================================
+FILE: convex/passwordReset/PasswordResetEmail.tsx
+================================================
+import {
+  Container,
+  Head,
+  Heading,
+  Html,
+  Section,
+  Tailwind,
+  Text,
+} from "@react-email/components";
+
+export function PasswordResetEmail({
+  code,
+  expires,
+}: {
+  code: string;
+  expires: Date;
+}) {
+  return (
+    <Html>
+      <Tailwind>
+        <Head />
+        <Container className="container px-20 font-sans">
+          <Heading className="text-xl font-bold mb-4">
+            {/* TODO: Update with your app name */}
+            Reset your password in My App
+          </Heading>
+          <Text className="text-sm">
+            Please enter the following code on the password reset page.
+          </Text>
+          <Section className="text-center">
+            <Text className="font-semibold">Verification code</Text>
+            <Text className="font-bold text-4xl">{code}</Text>
+            <Text>
+              (This code is valid for{" "}
+              {Math.floor((+expires - Date.now()) / (60 * 60 * 1000))} hours)
+            </Text>
+          </Section>
+        </Container>
+      </Tailwind>
+    </Html>
+  );
+}
+
+
+
+================================================
+FILE: convex/passwordReset/ResendOTPPasswordReset.ts
+================================================
+import { Email } from "@convex-dev/auth/providers/Email";
+import { alphabet, generateRandomString } from "oslo/crypto";
+import { Resend as ResendAPI } from "resend";
+import { PasswordResetEmail } from "./PasswordResetEmail";
+
+export const ResendOTPPasswordReset = Email({
+  id: "resend-otp-password-reset",
+  apiKey: process.env.AUTH_RESEND_KEY,
+  async generateVerificationToken() {
+    return generateRandomString(8, alphabet("0-9"));
+  },
+  async sendVerificationRequest({
+    identifier: email,
+    provider,
+    token,
+    expires,
+  }) {
+    const resend = new ResendAPI(provider.apiKey);
+    const { error } = await resend.emails.send({
+      // TODO: Update with your app name and email address
+      from: process.env.AUTH_EMAIL ?? "My App <onboarding@resend.dev>",
+      to: [email],
+      // TODO: Update with your app name
+      subject: `Reset password in My App`,
+      react: PasswordResetEmail({ code: token, expires }),
+    });
+
+    if (error) {
+      throw new Error(JSON.stringify(error));
+    }
+  },
+});
+
+
+
+================================================
+FILE: src/App.tsx
+================================================
+import { Chat } from "@/Chat/Chat";
+import { ChatHeader } from "@/Chat/ChatIntro";
+import { Layout } from "@/Layout";
+import { SignInFormsShowcase } from "@/auth/SignInFormsShowcase";
+import { UserMenu } from "@/components/UserMenu";
+import { api } from "../convex/_generated/api";
+import { Authenticated, Unauthenticated, useQuery } from "convex/react";
+
+export default function App() {
+  const user = useQuery(api.users.viewer);
+  return (
+    <Layout
+      menu={
+        <>
+          <Authenticated>
+            <UserMenu favoriteColor={user?.favoriteColor}>
+              {user?.name ?? user?.email ?? user?.phone ?? "Anonymous"}
+            </UserMenu>
+          </Authenticated>
+          <Unauthenticated>{null}</Unauthenticated>
+        </>
+      }
+    >
+      <>
+        <Authenticated>
+          <ChatHeader />
+          {/* eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain */}
+          <Chat viewer={user?._id!} />
+        </Authenticated>
+        <Unauthenticated>
+          <SignInFormsShowcase />
+        </Unauthenticated>
+      </>
+    </Layout>
+  );
+}
+
+
+
+================================================
+FILE: src/index.css
+================================================
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* To change the theme colors, change the values below
+  or use the "Copy code" button at https://ui.shadcn.com/themes */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 20 14.3% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 14.3% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14.3% 4.1%;
+    --primary: 24 9.8% 10%;
+    --primary-foreground: 60 9.1% 97.8%;
+    --secondary: 60 4.8% 95.9%;
+    --secondary-foreground: 24 9.8% 10%;
+    --muted: 60 4.8% 95.9%;
+    --muted-foreground: 25 5.3% 44.7%;
+    --accent: 60 4.8% 95.9%;
+    --accent-foreground: 24 9.8% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 60 9.1% 97.8%;
+    --border: 20 5.9% 90%;
+    --input: 20 5.9% 90%;
+    --ring: 20 14.3% 4.1%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 20 14.3% 4.1%;
+    --foreground: 60 9.1% 97.8%;
+    --card: 20 14.3% 4.1%;
+    --card-foreground: 60 9.1% 97.8%;
+    --popover: 20 14.3% 4.1%;
+    --popover-foreground: 60 9.1% 97.8%;
+    --primary: 60 9.1% 97.8%;
+    --primary-foreground: 24 9.8% 10%;
+    --secondary: 12 6.5% 15.1%;
+    --secondary-foreground: 60 9.1% 97.8%;
+    --muted: 12 6.5% 15.1%;
+    --muted-foreground: 24 5.4% 63.9%;
+    --accent: 12 6.5% 15.1%;
+    --accent-foreground: 60 9.1% 97.8%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 60 9.1% 97.8%;
+    --border: 12 6.5% 15.1%;
+    --input: 12 6.5% 15.1%;
+    --ring: 24 5.7% 82.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  form .react-colorful {
+    @apply w-full
+  }
+}
+
+
+
+================================================
+FILE: src/Layout.tsx
+================================================
+import { ReactNode } from "react";
+
+export function Layout({
+  menu,
+  children,
+}: {
+  menu?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex h-screen w-full flex-col">
+      <header className="sticky top-0 z-10 flex min-h-20 border-b bg-background/80 backdrop-blur">
+        <nav className="container w-full justify-between flex flex-row items-center gap-6">
+          <div className="flex items-center gap-6 md:gap-10">
+            <a href="/">
+              <h1 className="text-base font-semibold">Convex Auth Demo</h1>
+            </a>
+            <div className="flex items-center gap-4 text-sm">
+              <a
+                href="https://convex.dev"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+                target="_blank"
+              >
+                Convex
+              </a>
+              <a
+                href="https://docs.convex.dev"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+                target="_blank"
+              >
+                Docs
+              </a>
+            </div>
+          </div>
+          {menu}
+        </nav>
+      </header>
+      <main className="flex grow flex-col">{children}</main>
+      <footer className="border-t hidden sm:block">
+        <div className="container py-4 text-sm leading-loose">
+          Built with ❤️ at{" "}
+          <FooterLink href="https://www.convex.dev/">Convex</FooterLink>.
+          Powered by Convex,{" "}
+          <FooterLink href="https://vitejs.dev">Vite</FooterLink>,{" "}
+          <FooterLink href="https://react.dev/">React</FooterLink> and{" "}
+          <FooterLink href="https://ui.shadcn.com/">shadcn/ui</FooterLink>. The
+          source code is available on{" "}
+          <FooterLink href="https://github.com/get-convex/convex-auth-example/">
+            GitHub
+          </FooterLink>
+          .
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function FooterLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a
+      href={href}
+      className="underline underline-offset-4 hover:no-underline"
+      target="_blank"
+    >
+      {children}
+    </a>
+  );
+}
+
+
+
+================================================
+FILE: src/main.tsx
+================================================
+import { ConvexAuthProvider } from "@convex-dev/auth/react";
+import { ConvexReactClient } from "convex/react";
+import { ThemeProvider } from "next-themes";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.tsx";
+import "./index.css";
+
+const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <ThemeProvider attribute="class">
+      <ConvexAuthProvider client={convex}>
+        <App />
+      </ConvexAuthProvider>
+    </ThemeProvider>
+  </React.StrictMode>,
+);
+
+
+
+================================================
+FILE: src/utils.ts
+================================================
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+
+
+================================================
+FILE: src/vite-env.d.ts
+================================================
+/// <reference types="vite/client" />
+
+
+
+================================================
+FILE: src/auth/CodeInput.tsx
+================================================
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+
+export function CodeInput({ length = 8 }: { length?: number }) {
+  return (
+    <div className="mb-4">
+      <InputOTP maxLength={8} name="code" id="code">
+        <InputOTPGroup>
+          {Array(length)
+            .fill(null)
+            .map((_, index) => (
+              <InputOTPSlot key={index} index={index} />
+            ))}
+        </InputOTPGroup>
+      </InputOTP>
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/ResetPasswordWithEmailCode.tsx
+================================================
+import { useAuthActions } from "@convex-dev/auth/react";
+import { CodeInput } from "@/auth/CodeInput";
+import { SignInWithEmailCode } from "@/auth/SignInWithEmailCode";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
+
+export function ResetPasswordWithEmailCode({
+  handleCancel,
+  provider,
+}: {
+  handleCancel: () => void;
+  provider: string;
+}) {
+  const { signIn } = useAuthActions();
+  const { toast } = useToast();
+  const [step, setStep] = useState<"forgot" | { email: string }>("forgot");
+  const [submitting, setSubmitting] = useState(false);
+  return step === "forgot" ? (
+    <>
+      <h2 className="font-semibold text-2xl tracking-tight">
+        Send password reset code
+      </h2>
+      <SignInWithEmailCode
+        handleCodeSent={(email) => setStep({ email })}
+        provider={provider}
+      >
+        <input name="flow" type="hidden" value="reset" />
+      </SignInWithEmailCode>
+      <Button type="button" variant="link" onClick={handleCancel}>
+        Cancel
+      </Button>
+    </>
+  ) : (
+    <>
+      <h2 className="font-semibold text-2xl tracking-tight">
+        Check your email
+      </h2>
+      <p className="text-muted-foreground text-sm">
+        Enter the 8-digit code we sent to your email address and choose a new
+        password.
+      </p>
+      <form
+        className="flex flex-col"
+        onSubmit={(event) => {
+          event.preventDefault();
+          setSubmitting(true);
+          const formData = new FormData(event.currentTarget);
+          signIn(provider, formData).catch((error) => {
+            console.error(error);
+            toast({
+              title:
+                "Code could not be verified or new password is too short, try again",
+              variant: "destructive",
+            });
+            setSubmitting(false);
+          });
+        }}
+      >
+        <label htmlFor="email">Code</label>
+        <CodeInput />
+        <label htmlFor="newPassword">New Password</label>
+        <Input
+          type="password"
+          name="newPassword"
+          id="newPassword"
+          className="mb-4 "
+          autoComplete="new-password"
+        />
+        <input type="hidden" name="flow" value="reset-verification" />
+        <input type="hidden" name="email" value={step.email} />
+        <Button type="submit" disabled={submitting}>
+          Continue
+        </Button>
+        <Button type="button" variant="link" onClick={() => setStep("forgot")}>
+          Cancel
+        </Button>
+      </form>
+    </>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/SignInFormAnonymous.tsx
+================================================
+import { Button } from "@/components/ui/button";
+import { useAuthActions } from "@convex-dev/auth/react";
+
+export function SignInFormAnonymous() {
+  const { signIn } = useAuthActions();
+  return (
+    <div className="max-w-[384px] mx-auto flex flex-col gap-4">
+      <>
+        <h2 className="font-semibold text-2xl tracking-tight">
+          Sign in anonymously
+        </h2>
+        <Button
+          type="submit"
+          onClick={() => {
+            void signIn("anonymous");
+          }}
+        >
+          Sign in
+        </Button>
+      </>
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/SignInFormEmailCode.tsx
+================================================
+import { CodeInput } from "@/auth/CodeInput";
+import { SignInMethodDivider } from "@/auth/SignInMethodDivider";
+import { SignInWithEmailCode } from "@/auth/SignInWithEmailCode";
+import { SignInWithOAuth } from "@/auth/SignInWithOAuth";
+import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/toaster";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuthActions } from "@convex-dev/auth/react";
+import { useState } from "react";
+
+export function SignInFormEmailCode() {
+  const { signIn } = useAuthActions();
+  const [step, setStep] = useState<"signIn" | { email: string }>("signIn");
+  const { toast } = useToast();
+  const [submitting, setSubmitting] = useState(false);
+  return (
+    <div className="max-w-[384px] mx-auto flex flex-col gap-4">
+      {step === "signIn" ? (
+        <>
+          <h2 className="font-semibold text-2xl tracking-tight">
+            Sign in or create an account
+          </h2>
+          <SignInWithOAuth />
+          <SignInMethodDivider />
+          <SignInWithEmailCode handleCodeSent={(email) => setStep({ email })} />
+        </>
+      ) : (
+        <>
+          <h2 className="font-semibold text-2xl tracking-tight">
+            Check your email
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Enter the 8-digit code we sent to your email address.
+          </p>
+          <form
+            className="flex flex-col"
+            onSubmit={(event) => {
+              event.preventDefault();
+              setSubmitting(true);
+              const formData = new FormData(event.currentTarget);
+              signIn("resend-otp", formData).catch(() => {
+                toast({
+                  title: "Code could not be verified, try again",
+                  variant: "destructive",
+                });
+                setSubmitting(false);
+              });
+            }}
+          >
+            <label htmlFor="code">Code</label>
+            <CodeInput />
+            <input name="email" value={step.email} type="hidden" />
+            <Button type="submit" disabled={submitting}>
+              Continue
+            </Button>
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => setStep("signIn")}
+            >
+              Cancel
+            </Button>
+          </form>
+        </>
+      )}
+      <Toaster />
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/SignInFormEmailLink.tsx
+================================================
+import { useAuthActions } from "@convex-dev/auth/react";
+import { SignInMethodDivider } from "@/auth/SignInMethodDivider";
+import { SignInWithOAuth } from "@/auth/SignInWithOAuth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Toaster } from "@/components/ui/toaster";
+import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
+
+export function SignInFormEmailLink() {
+  const [step, setStep] = useState<"signIn" | "linkSent">("signIn");
+
+  return (
+    <div className="max-w-[384px] mx-auto flex flex-col gap-4">
+      {step === "signIn" ? (
+        <>
+          <h2 className="font-semibold text-2xl tracking-tight">
+            Sign in or create an account
+          </h2>
+          <SignInWithOAuth />
+          <SignInMethodDivider />
+          <SignInWithMagicLink handleLinkSent={() => setStep("linkSent")} />
+        </>
+      ) : (
+        <>
+          <h2 className="font-semibold text-2xl tracking-tight">
+            Check your email
+          </h2>
+          <p>A sign-in link has been sent to your email address.</p>
+          <Button
+            className="p-0 self-start"
+            variant="link"
+            onClick={() => setStep("signIn")}
+          >
+            Cancel
+          </Button>
+        </>
+      )}
+      <Toaster />
+    </div>
+  );
+}
+
+function SignInWithMagicLink({
+  handleLinkSent,
+}: {
+  handleLinkSent: () => void;
+}) {
+  const { signIn } = useAuthActions();
+  const { toast } = useToast();
+  const [submitting, setSubmitting] = useState(false);
+  return (
+    <form
+      className="flex flex-col"
+      onSubmit={(event) => {
+        event.preventDefault();
+        setSubmitting(true);
+        const formData = new FormData(event.currentTarget);
+        signIn("resend", formData)
+          .then(handleLinkSent)
+          .catch((error) => {
+            console.error(error);
+            toast({
+              title: "Could not send sign-in link",
+              variant: "destructive",
+            });
+            setSubmitting(false);
+          });
+      }}
+    >
+      <label htmlFor="email">Email</label>
+      <Input name="email" id="email" className="mb-4" autoComplete="email" />
+      <Button type="submit" disabled={submitting}>
+        Send sign-in link
+      </Button>
+    </form>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/SignInFormPassword.tsx
+================================================
+import { SignInWithPassword } from "@/auth/SignInWithPassword";
+import { Toaster } from "@/components/ui/toaster";
+
+export function SignInFormPassword() {
+  return (
+    <div className="max-w-[384px] mx-auto flex flex-col gap-4">
+      <h2 className="font-semibold text-2xl tracking-tight">
+        Sign in or create an account
+      </h2>
+      <SignInWithPassword />
+      <Toaster />
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/SignInFormPasswordAndCustomField.tsx
+================================================
+import { SignInWithPassword } from "@/auth/SignInWithPassword";
+import { Toaster } from "@/components/ui/toaster";
+import { useState } from "react";
+import { HexColorPicker } from "react-colorful";
+
+export function SignInFormPasswordAndCustomField() {
+  const [color, setColor] = useState<string | null>(null);
+  return (
+    <div className="max-w-[384px] mx-auto flex flex-col gap-4">
+      <h2 className="font-semibold text-2xl tracking-tight">
+        Sign in or create an account
+      </h2>
+      <SignInWithPassword
+        provider="password-custom"
+        passwordRequirements="6 or more characters with uppercase, lowercase and digits"
+        customSignUp={
+          <>
+            {color !== null && (
+              <input name="favoriteColor" value={color} type="hidden" />
+            )}
+            <span className="mt-4">Favorite Color</span>
+            <div
+              style={{ backgroundColor: color ?? "transparent" }}
+              className="h-9 w-full mb-2 rounded-md border border-gray-800"
+            >
+              &nbsp;
+            </div>
+            <HexColorPicker
+              color={color ?? "#aabbcc"}
+              onChange={setColor}
+              className="mb-4 w-max"
+            />
+          </>
+        }
+      />
+      <Toaster />
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/SignInFormPasswordAndResetViaCode.tsx
+================================================
+import { ResetPasswordWithEmailCode } from "@/auth/ResetPasswordWithEmailCode";
+import { SignInWithPassword } from "@/auth/SignInWithPassword";
+import { Toaster } from "@/components/ui/toaster";
+import { useState } from "react";
+
+/**
+ * Users choose between OAuth providers or email and password combo.
+ * If they forgot their password, they can reset it via OTP code
+ * sent to their email.
+ */
+export function SignInFormPasswordAndResetViaCode() {
+  const [step, setStep] = useState<"signIn" | "forgot">("signIn");
+  return (
+    <div className="max-w-[384px] mx-auto flex flex-col gap-4">
+      {step === "signIn" ? (
+        <>
+          <h2 className="font-semibold text-2xl tracking-tight">
+            Sign in or create an account
+          </h2>
+          <SignInWithPassword
+            provider="password-with-reset"
+            handlePasswordReset={() => setStep("forgot")}
+          />
+        </>
+      ) : (
+        <ResetPasswordWithEmailCode
+          provider="password-with-reset"
+          handleCancel={() => setStep("signIn")}
+        />
+      )}
+      <Toaster />
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/SignInFormPasswordAndVerifyViaCode.tsx
+================================================
+import { useAuthActions } from "@convex-dev/auth/react";
+import { CodeInput } from "@/auth/CodeInput";
+import { ResetPasswordWithEmailCode } from "@/auth/ResetPasswordWithEmailCode";
+import { SignInMethodDivider } from "@/auth/SignInMethodDivider";
+import { SignInWithOAuth } from "@/auth/SignInWithOAuth";
+import { SignInWithPassword } from "@/auth/SignInWithPassword";
+import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/toaster";
+import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
+
+/**
+ * Users choose between OAuth providers or email and password combo
+ * with required email verification and optional password reset via OTP.
+ */
+export function SignInFormPasswordAndVerifyViaCode() {
+  const { signIn } = useAuthActions();
+  const { toast } = useToast();
+  const [step, setStep] = useState<"signIn" | { email: string } | "forgot">(
+    "signIn",
+  );
+  const [submitting, setSubmitting] = useState(false);
+  return (
+    <div className="max-w-[384px] mx-auto flex flex-col gap-4">
+      {step === "signIn" ? (
+        <>
+          <h2 className="font-semibold text-2xl tracking-tight">
+            Sign in or create an account
+          </h2>
+          <SignInWithOAuth />
+          <SignInMethodDivider />
+          <SignInWithPassword
+            handleSent={(email) => setStep({ email })}
+            handlePasswordReset={() => setStep("forgot")}
+            provider="password-code"
+          />
+        </>
+      ) : step === "forgot" ? (
+        <ResetPasswordWithEmailCode
+          provider="password-code"
+          handleCancel={() => setStep("signIn")}
+        />
+      ) : (
+        <>
+          <h2 className="font-semibold text-2xl tracking-tight">
+            Check your email
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Enter the 8-digit code we sent to your email address.
+          </p>
+          <form
+            className="flex flex-col"
+            onSubmit={(event) => {
+              event.preventDefault();
+              setSubmitting(true);
+              const formData = new FormData(event.currentTarget);
+              signIn("password-code", formData).catch((error) => {
+                console.error(error);
+                toast({
+                  title: "Code could not be verified, try again",
+                  variant: "destructive",
+                });
+                setSubmitting(false);
+              });
+            }}
+          >
+            <label htmlFor="email">Code</label>
+            <CodeInput />
+            <input name="email" value={step.email} type="hidden" />
+            <input name="flow" value="email-verification" type="hidden" />
+            <Button type="submit" disabled={submitting}>
+              Continue
+            </Button>
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => setStep("signIn")}
+            >
+              Cancel
+            </Button>
+          </form>
+        </>
+      )}
+      <Toaster />
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/SignInFormPasswordAndVerifyViaLink.tsx
+================================================
+import { SignInMethodDivider } from "@/auth/SignInMethodDivider";
+import { SignInWithOAuth } from "@/auth/SignInWithOAuth";
+import { SignInWithPassword } from "@/auth/SignInWithPassword";
+import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/toaster";
+import { useState } from "react";
+
+/**
+ * Users choose between OAuth providers or email and password combo
+ * with required email verification via a link.
+ *
+ * Note: This form is not showcased because it does not include
+ * password reset flow, because password reset flow via magic links
+ * requires routing.
+ */
+export function SignInFormPasswordAndVerifyViaLink() {
+  const [step, setStep] = useState<"signIn" | "linkSent">("signIn");
+  return (
+    <div className="max-w-[384px] mx-auto flex flex-col gap-4">
+      {step === "signIn" ? (
+        <>
+          <h2 className="font-semibold text-2xl tracking-tight">
+            Sign in or create an account
+          </h2>
+          <SignInWithOAuth />
+          <SignInMethodDivider />
+          <SignInWithPassword
+            handleSent={() => setStep("linkSent")}
+            provider="password-link"
+          />
+        </>
+      ) : (
+        <>
+          <h2 className="font-semibold text-2xl tracking-tight">
+            Check your email
+          </h2>
+          <p>A verification link has been sent to your email address.</p>
+          <Button
+            className="p-0 self-start"
+            variant="link"
+            onClick={() => setStep("signIn")}
+          >
+            Cancel
+          </Button>
+        </>
+      )}
+      <Toaster />
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/SignInFormPhoneCode.tsx
+================================================
+import { CodeInput } from "@/auth/CodeInput";
+import { Button } from "@/components/ui/button";
+import { useAuthActions } from "@convex-dev/auth/react";
+
+import { Input } from "@/components/ui/input";
+import { Toaster } from "@/components/ui/toaster";
+import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
+
+export function SignInFormPhoneCode() {
+  const { signIn } = useAuthActions();
+  const [step, setStep] = useState<"signIn" | { phone: string }>("signIn");
+  const { toast } = useToast();
+
+  return (
+    <div className="max-w-[384px] mx-auto flex flex-col gap-4">
+      {step === "signIn" ? (
+        <>
+          <h2 className="font-semibold text-2xl tracking-tight">
+            Sign in or create an account
+          </h2>
+          <form
+            className="flex flex-col"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const formData = new FormData(event.currentTarget);
+              signIn("twilio", formData)
+                .then(() => setStep({ phone: formData.get("phone") as string }))
+                .catch((error) => {
+                  console.error(error);
+                  toast({
+                    title: "Could not send code",
+                    variant: "destructive",
+                  });
+                });
+            }}
+          >
+            <label htmlFor="phone">Phone</label>
+            <Input
+              name="phone"
+              id="phone"
+              className="mb-4"
+              autoComplete="tel"
+            />
+            <Button type="submit">Send code</Button>
+          </form>
+        </>
+      ) : (
+        <>
+          <h2 className="font-semibold text-2xl tracking-tight">
+            Check your phone
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Enter the 6-digit code we sent to your phone number.
+          </p>
+          <form
+            className="flex flex-col"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const formData = new FormData(event.currentTarget);
+              signIn("twilio", formData).catch(() => {
+                toast({
+                  title: "Code could not be verified, try again",
+                  variant: "destructive",
+                });
+              });
+            }}
+          >
+            <label htmlFor="code">Code</label>
+            <CodeInput length={6} />
+            <input name="phone" value={step.phone} type="hidden" />
+            <Button type="submit">Continue</Button>
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => setStep("signIn")}
+            >
+              Cancel
+            </Button>
+          </form>
+        </>
+      )}
+      <Toaster />
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/SignInFormsShowcase.tsx
+================================================
+// import { SignInFormAnonymous } from "@/auth/SignInFormAnonymous";
+import { SignInFormEmailCode } from "@/auth/SignInFormEmailCode";
+import { SignInFormEmailLink } from "@/auth/SignInFormEmailLink";
+import { SignInFormPassword } from "@/auth/SignInFormPassword";
+import { SignInFormPasswordAndResetViaCode } from "@/auth/SignInFormPasswordAndResetViaCode";
+import { SignInFormPasswordAndVerifyViaCode } from "@/auth/SignInFormPasswordAndVerifyViaCode";
+import { SignInFormPasswordAndCustomField } from "@/auth/SignInFormPasswordAndCustomField";
+import { SignInFormPhoneCode } from "@/auth/SignInFormPhoneCode";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// This component is here to showcase different combinations of sign-in methods.
+// 1. Choose one of the forms and use it directly instead of this component.
+// 2. Delete or add OAuth providers as needed.
+// 3. Delete the unused forms.
+export function SignInFormsShowcase() {
+  return (
+    <Tabs defaultValue="otp" className="container flex flex-col mt-10">
+      <TabsList className="ml-auto mr-10 mb-1 opacity-60 overflow-x-scroll max-w-full justify-start">
+        <TabsTrigger value="otp">OTP</TabsTrigger>
+        <TabsTrigger value="link">Magic Link</TabsTrigger>
+        <TabsTrigger value="password">Password</TabsTrigger>
+        {/* <TabsTrigger value="anonymous">Anonymous</TabsTrigger> */}
+      </TabsList>
+      <TabsContent value="otp">
+        <Tabs defaultValue="email" className="flex flex-col">
+          <TabsList className="ml-auto mr-10 mb-7 opacity-60">
+            <TabsTrigger value="email">OAuth + Email</TabsTrigger>
+            <TabsTrigger value="phone">SMS</TabsTrigger>
+          </TabsList>
+          <TabsContent value="email">
+            {/* Sign in via emailed OTP */}
+            <SignInFormEmailCode />
+          </TabsContent>
+          <TabsContent value="phone">
+            {/* Sign in via SMS OTP */}
+            <SignInFormPhoneCode />
+          </TabsContent>
+        </Tabs>
+      </TabsContent>
+      <TabsContent className="mt-20" value="link">
+        {/* Sign in via magic link */}
+        <SignInFormEmailLink />
+      </TabsContent>
+      <TabsContent value="password">
+        <Tabs defaultValue="basic" className="flex flex-col">
+          <TabsList className="ml-auto mr-10 mb-7 opacity-60 overflow-x-scroll max-w-full justify-start">
+            <TabsTrigger value="basic">Basic</TabsTrigger>
+            <TabsTrigger value="custom">Custom Sign Up</TabsTrigger>
+            <TabsTrigger value="password reset">Password Reset</TabsTrigger>
+            <TabsTrigger value="email verification">
+              OAuth + Email Verification
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="basic">
+            {/* Simplest email + password, no recovery */}
+            <SignInFormPassword />
+          </TabsContent>
+          <TabsContent value="custom">
+            {/* Email + password and custom field in sign up flow */}
+            <SignInFormPasswordAndCustomField />
+          </TabsContent>
+          <TabsContent value="password reset">
+            {/* Email + password, plus password reset via OTP */}
+            <SignInFormPasswordAndResetViaCode />
+          </TabsContent>
+          <TabsContent value="email verification">
+            {/* Email + password, plus email verification and password
+                    reset via OTP */}
+            <SignInFormPasswordAndVerifyViaCode />
+          </TabsContent>
+        </Tabs>
+      </TabsContent>
+      {/* Sign in anonymously */}
+      {/* <TabsContent className="mt-20" value="anonymous">
+        <SignInFormAnonymous />
+      </TabsContent> */}
+    </Tabs>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/SignInMethodDivider.tsx
+================================================
+export function SignInMethodDivider() {
+  return (
+    <div className="relative">
+      <div className="absolute inset-0 flex items-center">
+        <span className="w-full border-t" />
+      </div>
+      <div className="relative flex justify-center text-xs uppercase">
+        <span className="bg-background px-2 text-muted-foreground">
+          Or continue with
+        </span>
+      </div>
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/SignInWithEmailCode.tsx
+================================================
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuthActions } from "@convex-dev/auth/react";
+import { useState } from "react";
+
+export function SignInWithEmailCode({
+  handleCodeSent,
+  provider,
+  children,
+}: {
+  handleCodeSent: (email: string) => void;
+  provider?: string;
+  children?: React.ReactNode;
+}) {
+  const { signIn } = useAuthActions();
+  const { toast } = useToast();
+  const [submitting, setSubmitting] = useState(false);
+  return (
+    <form
+      className="flex flex-col"
+      onSubmit={(event) => {
+        event.preventDefault();
+        setSubmitting(true);
+        const formData = new FormData(event.currentTarget);
+        signIn(provider ?? "resend-otp", formData)
+          .then(() => handleCodeSent(formData.get("email") as string))
+          .catch((error) => {
+            console.error(error);
+            toast({
+              title: "Could not send code",
+              variant: "destructive",
+            });
+            setSubmitting(false);
+          });
+      }}
+    >
+      <label htmlFor="email">Email</label>
+      <Input name="email" id="email" className="mb-4" autoComplete="email" />
+      {children}
+      <Button type="submit" disabled={submitting}>
+        Send code
+      </Button>
+    </form>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/SignInWithOAuth.tsx
+================================================
+import { SignInWithApple } from "@/auth/oauth/SignInWithApple";
+import { SignInWithGitHub } from "@/auth/oauth/SignInWithGitHub";
+import { SignInWithGoogle } from "@/auth/oauth/SignInWithGoogle";
+
+export function SignInWithOAuth() {
+  return (
+    <div className="flex flex-col min-[460px]:flex-row w-full gap-2 items-stretch">
+      <SignInWithGitHub />
+      <SignInWithGoogle />
+      <SignInWithApple />
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/SignInWithPassword.tsx
+================================================
+import { useAuthActions } from "@convex-dev/auth/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
+import { ConvexError } from "convex/values";
+import { INVALID_PASSWORD } from "../../convex/errors.js";
+
+export function SignInWithPassword({
+  provider,
+  handleSent,
+  handlePasswordReset,
+  customSignUp: customSignUp,
+  passwordRequirements,
+}: {
+  provider?: string;
+  handleSent?: (email: string) => void;
+  handlePasswordReset?: () => void;
+  customSignUp?: React.ReactNode;
+  passwordRequirements?: string;
+}) {
+  const { signIn } = useAuthActions();
+  const [flow, setFlow] = useState<"signIn" | "signUp">("signIn");
+  const { toast } = useToast();
+  const [submitting, setSubmitting] = useState(false);
+  return (
+    <form
+      className="flex flex-col"
+      onSubmit={(event) => {
+        event.preventDefault();
+        setSubmitting(true);
+        const formData = new FormData(event.currentTarget);
+        signIn(provider ?? "password", formData)
+          .then(() => {
+            handleSent?.(formData.get("email") as string);
+          })
+          .catch((error) => {
+            console.error(error);
+            let toastTitle: string;
+            if (
+              error instanceof ConvexError &&
+              error.data === INVALID_PASSWORD
+            ) {
+              toastTitle =
+                "Invalid password - check the requirements and try again.";
+            } else {
+              toastTitle =
+                flow === "signIn"
+                  ? "Could not sign in, did you mean to sign up?"
+                  : "Could not sign up, did you mean to sign in?";
+            }
+            toast({ title: toastTitle, variant: "destructive" });
+            setSubmitting(false);
+          });
+      }}
+    >
+      <label htmlFor="email">Email</label>
+      <Input name="email" id="email" className="mb-4" autoComplete="email" />
+      <div className="flex items-center justify-between">
+        <label htmlFor="password">Password</label>
+        {handlePasswordReset && flow === "signIn" ? (
+          <Button
+            className="p-0 h-auto"
+            type="button"
+            variant="link"
+            onClick={handlePasswordReset}
+          >
+            Forgot your password?
+          </Button>
+        ) : null}
+      </div>
+      <Input
+        type="password"
+        name="password"
+        id="password"
+        autoComplete={flow === "signIn" ? "current-password" : "new-password"}
+      />
+      {flow === "signUp" && passwordRequirements !== null && (
+        <span className="text-gray-500 font-thin text-sm">
+          {passwordRequirements}
+        </span>
+      )}
+      {flow === "signUp" && customSignUp}
+      <input name="flow" value={flow} type="hidden" />
+      <Button type="submit" disabled={submitting} className="mt-4">
+        {flow === "signIn" ? "Sign in" : "Sign up"}
+      </Button>
+      <Button
+        variant="link"
+        type="button"
+        onClick={() => {
+          setFlow(flow === "signIn" ? "signUp" : "signIn");
+        }}
+      >
+        {flow === "signIn"
+          ? "Don't have an account? Sign up"
+          : "Already have an account? Sign in"}
+      </Button>
+    </form>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/oauth/SignInWithApple.tsx
+================================================
+import { useAuthActions } from "@convex-dev/auth/react";
+import { AppleLogo } from "@/components/AppleLogo";
+import { Button } from "@/components/ui/button";
+
+export function SignInWithApple() {
+  const { signIn } = useAuthActions();
+  return (
+    <Button
+      className="flex-1"
+      variant="outline"
+      type="button"
+      onClick={() => void signIn("apple")}
+    >
+      <AppleLogo className="mr-2 h-4 w-4" /> Apple
+    </Button>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/oauth/SignInWithGitHub.tsx
+================================================
+import { useAuthActions } from "@convex-dev/auth/react";
+import { GitHubLogo } from "@/components/GitHubLogo";
+import { Button } from "@/components/ui/button";
+
+export function SignInWithGitHub() {
+  const { signIn } = useAuthActions();
+  return (
+    <Button
+      className="flex-1"
+      variant="outline"
+      type="button"
+      onClick={() => void signIn("github")}
+    >
+      <GitHubLogo className="mr-2 h-4 w-4" /> GitHub
+    </Button>
+  );
+}
+
+
+
+================================================
+FILE: src/auth/oauth/SignInWithGoogle.tsx
+================================================
+import { useAuthActions } from "@convex-dev/auth/react";
+import { GoogleLogo } from "@/components/GoogleLogo";
+import { Button } from "@/components/ui/button";
+
+export function SignInWithGoogle() {
+  const { signIn } = useAuthActions();
+  return (
+    <Button
+      className="flex-1"
+      variant="outline"
+      type="button"
+      onClick={() => void signIn("google")}
+    >
+      <GoogleLogo className="mr-2 h-4 w-4" /> Google
+    </Button>
+  );
+}
+
+
+
+================================================
+FILE: src/Chat/Chat.tsx
+================================================
+import { Message } from "@/Chat/Message";
+import { MessageList } from "@/Chat/MessageList";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useMutation, useQuery } from "convex/react";
+import { FormEvent, useState } from "react";
+import { api } from "../../convex/_generated/api";
+import { Id } from "../../convex/_generated/dataModel";
+
+export function Chat({ viewer }: { viewer: Id<"users"> }) {
+  const [newMessageText, setNewMessageText] = useState("");
+  const messages = useQuery(api.messages.list);
+  const sendMessage = useMutation(api.messages.send);
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    sendMessage({ body: newMessageText })
+      .then(() => {
+        setNewMessageText("");
+      })
+      .catch((error) => {
+        console.error("Failed to send message:", error);
+      });
+  };
+
+  return (
+    <>
+      <MessageList>
+        {messages?.map((message) => (
+          <Message
+            key={message._id}
+            author={message.userId}
+            authorName={message.author}
+            viewer={viewer}
+          >
+            {message.body}
+          </Message>
+        ))}
+      </MessageList>
+      <div className="border-t">
+        <form onSubmit={handleSubmit} className="container flex gap-2 py-4">
+          <Input
+            value={newMessageText}
+            onChange={(event) => setNewMessageText(event.target.value)}
+            placeholder="Write a message…"
+          />
+          <Button type="submit" disabled={newMessageText === ""}>
+            Send
+          </Button>
+        </form>
+      </div>
+    </>
+  );
+}
+
+
+
+================================================
+FILE: src/Chat/ChatIntro.tsx
+================================================
+export function ChatHeader() {
+  return (
+    <div className="flex items-start justify-between border-b py-4">
+      <div className="container flex flex-col gap-2">
+        <h1 className=" text-lg font-semibold md:text-2xl">Chat</h1>
+        <p className="hidden sm:block text-sm text-muted-foreground">
+          Open this app in multiple browser windows to see the real-time
+          database in action
+        </p>
+      </div>
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: src/Chat/Message.tsx
+================================================
+import { cn } from "@/lib/utils";
+import { ReactNode } from "react";
+import { Id } from "../../convex/_generated/dataModel";
+
+export function Message({
+  authorName,
+  author,
+  viewer,
+  children,
+}: {
+  authorName: string;
+  author: Id<"users">;
+  viewer: Id<"users">;
+  children: ReactNode;
+}) {
+  return (
+    <li
+      className={cn(
+        "flex flex-col text-sm",
+        author === viewer ? "items-end self-end" : "items-start self-start",
+      )}
+    >
+      <div className="mb-1 text-sm font-medium">{authorName}</div>
+      <p
+        className={cn(
+          "rounded-xl bg-muted px-3 py-2",
+          author === viewer ? "rounded-tr-none" : "rounded-tl-none",
+        )}
+      >
+        {children}
+      </p>
+    </li>
+  );
+}
+
+
+
+================================================
+FILE: src/Chat/MessageList.tsx
+================================================
+import { ReactNode, useEffect, useRef } from "react";
+
+export function MessageList({ children }: { children: ReactNode }) {
+  const messageListRef = useRef<HTMLOListElement>(null);
+
+  useEffect(() => {
+    if (messageListRef.current) {
+      messageListRef.current.scrollTo({
+        top: messageListRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [children]);
+  return (
+    <ol
+      ref={messageListRef}
+      className="container flex grow flex-col gap-4 overflow-y-auto scroll-smooth px-8 py-4"
+    >
+      {children}
+    </ol>
+  );
+}
+
+
+
+================================================
+FILE: src/Chat/randomName.ts
+================================================
+const namesList =
+  "Robert,Linda,Daniel,Anthony,Donald,Paul,Kevin,Brian,Patricia,Jennifer," +
+  "Elizabeth,William,Richard,Jessica,Lisa,Nancy,Matthew,Ashley,Kimberly," +
+  "Donna,Kenneth,Melissa";
+const names = namesList.split(",");
+
+export function randomName(): string {
+  const picked = names[Math.floor(Math.random() * names.length)];
+  return Math.random() > 0.5 ? picked.slice(0, 3) : picked;
+}
+
+
+
+================================================
+FILE: src/components/AppleLogo.tsx
+================================================
+export function AppleLogo(props: React.HTMLAttributes<SVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="4 32 376.4 449.4"
+      width="32"
+      height="32"
+      fill="currentColor"
+      {...props}
+    >
+      <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+    </svg>
+  );
+}
+
+
+
+================================================
+FILE: src/components/Code.tsx
+================================================
+import { ReactNode } from "react";
+
+export const Code = ({ children }: { children: ReactNode }) => {
+  return (
+    <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+      {children}
+    </code>
+  );
+};
+
+
+
+================================================
+FILE: src/components/GitHubLogo.tsx
+================================================
+export function GitHubLogo(props: React.HTMLAttributes<SVGElement>) {
+  return (
+    <svg viewBox="0 0 438.549 438.549" {...props}>
+      <path
+        fill="currentColor"
+        d="M409.132 114.573c-19.608-33.596-46.205-60.194-79.798-79.8-33.598-19.607-70.277-29.408-110.063-29.408-39.781 0-76.472 9.804-110.063 29.408-33.596 19.605-60.192 46.204-79.8 79.8C9.803 148.168 0 184.854 0 224.63c0 47.78 13.94 90.745 41.827 128.906 27.884 38.164 63.906 64.572 108.063 79.227 5.14.954 8.945.283 11.419-1.996 2.475-2.282 3.711-5.14 3.711-8.562 0-.571-.049-5.708-.144-15.417a2549.81 2549.81 0 01-.144-25.406l-6.567 1.136c-4.187.767-9.469 1.092-15.846 1-6.374-.089-12.991-.757-19.842-1.999-6.854-1.231-13.229-4.086-19.13-8.559-5.898-4.473-10.085-10.328-12.56-17.556l-2.855-6.57c-1.903-4.374-4.899-9.233-8.992-14.559-4.093-5.331-8.232-8.945-12.419-10.848l-1.999-1.431c-1.332-.951-2.568-2.098-3.711-3.429-1.142-1.331-1.997-2.663-2.568-3.997-.572-1.335-.098-2.43 1.427-3.289 1.525-.859 4.281-1.276 8.28-1.276l5.708.853c3.807.763 8.516 3.042 14.133 6.851 5.614 3.806 10.229 8.754 13.846 14.842 4.38 7.806 9.657 13.754 15.846 17.847 6.184 4.093 12.419 6.136 18.699 6.136 6.28 0 11.704-.476 16.274-1.423 4.565-.952 8.848-2.383 12.847-4.285 1.713-12.758 6.377-22.559 13.988-29.41-10.848-1.14-20.601-2.857-29.264-5.14-8.658-2.286-17.605-5.996-26.835-11.14-9.235-5.137-16.896-11.516-22.985-19.126-6.09-7.614-11.088-17.61-14.987-29.979-3.901-12.374-5.852-26.648-5.852-42.826 0-23.035 7.52-42.637 22.557-58.817-7.044-17.318-6.379-36.732 1.997-58.24 5.52-1.715 13.706-.428 24.554 3.853 10.85 4.283 18.794 7.952 23.84 10.994 5.046 3.041 9.089 5.618 12.135 7.708 17.705-4.947 35.976-7.421 54.818-7.421s37.117 2.474 54.823 7.421l10.849-6.849c7.419-4.57 16.18-8.758 26.262-12.565 10.088-3.805 17.802-4.853 23.134-3.138 8.562 21.509 9.325 40.922 2.279 58.24 15.036 16.18 22.559 35.787 22.559 58.817 0 16.178-1.958 30.497-5.853 42.966-3.9 12.471-8.941 22.457-15.125 29.979-6.191 7.521-13.901 13.85-23.131 18.986-9.232 5.14-18.182 8.85-26.84 11.136-8.662 2.286-18.415 4.004-29.263 5.146 9.894 8.562 14.842 22.077 14.842 40.539v60.237c0 3.422 1.19 6.279 3.572 8.562 2.379 2.279 6.136 2.95 11.276 1.995 44.163-14.653 80.185-41.062 108.068-79.226 27.88-38.161 41.825-81.126 41.825-128.906-.01-39.771-9.818-76.454-29.414-110.049z"
+      ></path>
+    </svg>
+  );
+}
+
+
+
+================================================
+FILE: src/components/GoogleLogo.tsx
+================================================
+export function GoogleLogo(props: React.HTMLAttributes<SVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" {...props}>
+      <path
+        fill="#EA4335 "
+        d="M5.26620003,9.76452941 C6.19878754,6.93863203 8.85444915,4.90909091 12,4.90909091 C13.6909091,4.90909091 15.2181818,5.50909091 16.4181818,6.49090909 L19.9090909,3 C17.7818182,1.14545455 15.0545455,0 12,0 C7.27006974,0 3.1977497,2.69829785 1.23999023,6.65002441 L5.26620003,9.76452941 Z"
+      />
+      <path
+        fill="#34A853"
+        d="M16.0407269,18.0125889 C14.9509167,18.7163016 13.5660892,19.0909091 12,19.0909091 C8.86648613,19.0909091 6.21911939,17.076871 5.27698177,14.2678769 L1.23746264,17.3349879 C3.19279051,21.2936293 7.26500293,24 12,24 C14.9328362,24 17.7353462,22.9573905 19.834192,20.9995801 L16.0407269,18.0125889 Z"
+      />
+      <path
+        fill="#4A90E2"
+        d="M19.834192,20.9995801 C22.0291676,18.9520994 23.4545455,15.903663 23.4545455,12 C23.4545455,11.2909091 23.3454545,10.5272727 23.1818182,9.81818182 L12,9.81818182 L12,14.4545455 L18.4363636,14.4545455 C18.1187732,16.013626 17.2662994,17.2212117 16.0407269,18.0125889 L19.834192,20.9995801 Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.27698177,14.2678769 C5.03832634,13.556323 4.90909091,12.7937589 4.90909091,12 C4.90909091,11.2182781 5.03443647,10.4668121 5.26620003,9.76452941 L1.23999023,6.65002441 C0.43658717,8.26043162 0,10.0753848 0,12 C0,13.9195484 0.444780743,15.7301709 1.23746264,17.3349879 L5.27698177,14.2678769 Z"
+      />
+    </svg>
+  );
+}
+
+
+
+================================================
+FILE: src/components/ThemeToggle.tsx
+================================================
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { DesktopIcon, MoonIcon, SunIcon } from "@radix-ui/react-icons";
+import { useTheme } from "next-themes";
+
+export function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  return (
+    <ToggleGroup type="single" size="sm" onValueChange={setTheme} value={theme}>
+      <ToggleGroupItem value="light" aria-label="Light">
+        <SunIcon />
+      </ToggleGroupItem>
+      <ToggleGroupItem value="dark" aria-label="Dark">
+        <MoonIcon />
+      </ToggleGroupItem>
+      <ToggleGroupItem value="system" aria-label="System">
+        <DesktopIcon />
+      </ToggleGroupItem>
+    </ToggleGroup>
+  );
+}
+
+
+
+================================================
+FILE: src/components/UserMenu.tsx
+================================================
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { PersonIcon } from "@radix-ui/react-icons";
+import { ReactNode } from "react";
+import { useAuthActions } from "@convex-dev/auth/react";
+
+export function UserMenu({
+  favoriteColor,
+  children,
+}: {
+  favoriteColor: string | undefined;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2 text-sm font-medium">
+      {children}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="secondary" size="icon" className="rounded-full">
+            <PersonIcon className="h-5 w-5" />
+            <span className="sr-only">Toggle user menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>{children}</DropdownMenuLabel>
+          {favoriteColor !== undefined && (
+            <DropdownMenuLabel className="flex items-center">
+              Favorite color:
+              <div
+                style={{ backgroundColor: favoriteColor }}
+                className="inline-block ml-1 w-5 h-5 border border-gray-800 rounded-sm"
+              >
+                &nbsp;
+              </div>
+            </DropdownMenuLabel>
+          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="flex items-center gap-2 py-0 font-normal">
+            Theme
+            <ThemeToggle />
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <SignOutButton />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
+function SignOutButton() {
+  const { signOut } = useAuthActions();
+  return (
+    <DropdownMenuItem onClick={() => void signOut()}>Sign out</DropdownMenuItem>
+  );
+}
+
+
+
+================================================
+FILE: src/components/typography/code.tsx
+================================================
+import { ReactNode } from "react";
+
+export const Code = ({ children }: { children: ReactNode }) => {
+  return (
+    <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+      {children}
+    </code>
+  );
+};
+
+
+
+================================================
+FILE: src/components/ui/button.tsx
+================================================
+/* eslint-disable react-refresh/only-export-components */
+
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        outline:
+          "border border-input bg-transparent shadow-sm hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-10 rounded-md px-8",
+        icon: "h-9 w-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Button.displayName = "Button"
+
+export { Button, buttonVariants }
+
+
+
+================================================
+FILE: src/components/ui/card.tsx
+================================================
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-xl border bg-card text-card-foreground shadow",
+      className
+    )}
+    {...props}
+  />
+))
+Card.displayName = "Card"
+
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props}
+  />
+))
+CardHeader.displayName = "CardHeader"
+
+const CardTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h3
+    ref={ref}
+    className={cn("font-semibold leading-none tracking-tight", className)}
+    {...props}
+  />
+))
+CardTitle.displayName = "CardTitle"
+
+const CardDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+CardDescription.displayName = "CardDescription"
+
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+))
+CardContent.displayName = "CardContent"
+
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center p-6 pt-0", className)}
+    {...props}
+  />
+))
+CardFooter.displayName = "CardFooter"
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+
+
+
+================================================
+FILE: src/components/ui/dialog.tsx
+================================================
+import * as React from "react"
+import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { Cross2Icon } from "@radix-ui/react-icons"
+
+import { cn } from "@/lib/utils"
+
+const Dialog = DialogPrimitive.Root
+
+const DialogTrigger = DialogPrimitive.Trigger
+
+const DialogPortal = DialogPrimitive.Portal
+
+const DialogClose = DialogPrimitive.Close
+
+const DialogOverlay = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Overlay>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Overlay
+    ref={ref}
+    className={cn(
+      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      className
+    )}
+    {...props}
+  />
+))
+DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
+
+const DialogContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <DialogPortal>
+    <DialogOverlay />
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn(
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+        <Cross2Icon className="h-4 w-4" />
+        <span className="sr-only">Close</span>
+      </DialogPrimitive.Close>
+    </DialogPrimitive.Content>
+  </DialogPortal>
+))
+DialogContent.displayName = DialogPrimitive.Content.displayName
+
+const DialogHeader = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      "flex flex-col space-y-1.5 text-center sm:text-left",
+      className
+    )}
+    {...props}
+  />
+)
+DialogHeader.displayName = "DialogHeader"
+
+const DialogFooter = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+      className
+    )}
+    {...props}
+  />
+)
+DialogFooter.displayName = "DialogFooter"
+
+const DialogTitle = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Title>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Title
+    ref={ref}
+    className={cn(
+      "text-lg font-semibold leading-none tracking-tight",
+      className
+    )}
+    {...props}
+  />
+))
+DialogTitle.displayName = DialogPrimitive.Title.displayName
+
+const DialogDescription = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Description>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Description
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+DialogDescription.displayName = DialogPrimitive.Description.displayName
+
+export {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogTrigger,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+}
+
+
+
+================================================
+FILE: src/components/ui/dropdown-menu.tsx
+================================================
+import * as React from "react"
+import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
+import {
+  CheckIcon,
+  ChevronRightIcon,
+  DotFilledIcon,
+} from "@radix-ui/react-icons"
+
+import { cn } from "@/lib/utils"
+
+const DropdownMenu = DropdownMenuPrimitive.Root
+
+const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
+
+const DropdownMenuGroup = DropdownMenuPrimitive.Group
+
+const DropdownMenuPortal = DropdownMenuPrimitive.Portal
+
+const DropdownMenuSub = DropdownMenuPrimitive.Sub
+
+const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup
+
+const DropdownMenuSubTrigger = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.SubTrigger>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubTrigger> & {
+    inset?: boolean
+  }
+>(({ className, inset, children, ...props }, ref) => (
+  <DropdownMenuPrimitive.SubTrigger
+    ref={ref}
+    className={cn(
+      "flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent data-[state=open]:bg-accent",
+      inset && "pl-8",
+      className
+    )}
+    {...props}
+  >
+    {children}
+    <ChevronRightIcon className="ml-auto h-4 w-4" />
+  </DropdownMenuPrimitive.SubTrigger>
+))
+DropdownMenuSubTrigger.displayName =
+  DropdownMenuPrimitive.SubTrigger.displayName
+
+const DropdownMenuSubContent = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
+>(({ className, ...props }, ref) => (
+  <DropdownMenuPrimitive.SubContent
+    ref={ref}
+    className={cn(
+      "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+      className
+    )}
+    {...props}
+  />
+))
+DropdownMenuSubContent.displayName =
+  DropdownMenuPrimitive.SubContent.displayName
+
+const DropdownMenuContent = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
+>(({ className, sideOffset = 4, ...props }, ref) => (
+  <DropdownMenuPrimitive.Portal>
+    <DropdownMenuPrimitive.Content
+      ref={ref}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        className
+      )}
+      {...props}
+    />
+  </DropdownMenuPrimitive.Portal>
+))
+DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName
+
+const DropdownMenuItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
+    inset?: boolean
+  }
+>(({ className, inset, ...props }, ref) => (
+  <DropdownMenuPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      inset && "pl-8",
+      className
+    )}
+    {...props}
+  />
+))
+DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName
+
+const DropdownMenuCheckboxItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.CheckboxItem>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>
+>(({ className, children, checked, ...props }, ref) => (
+  <DropdownMenuPrimitive.CheckboxItem
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    checked={checked}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <DropdownMenuPrimitive.ItemIndicator>
+        <CheckIcon className="h-4 w-4" />
+      </DropdownMenuPrimitive.ItemIndicator>
+    </span>
+    {children}
+  </DropdownMenuPrimitive.CheckboxItem>
+))
+DropdownMenuCheckboxItem.displayName =
+  DropdownMenuPrimitive.CheckboxItem.displayName
+
+const DropdownMenuRadioItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.RadioItem>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
+>(({ className, children, ...props }, ref) => (
+  <DropdownMenuPrimitive.RadioItem
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <DropdownMenuPrimitive.ItemIndicator>
+        <DotFilledIcon className="h-4 w-4 fill-current" />
+      </DropdownMenuPrimitive.ItemIndicator>
+    </span>
+    {children}
+  </DropdownMenuPrimitive.RadioItem>
+))
+DropdownMenuRadioItem.displayName = DropdownMenuPrimitive.RadioItem.displayName
+
+const DropdownMenuLabel = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label> & {
+    inset?: boolean
+  }
+>(({ className, inset, ...props }, ref) => (
+  <DropdownMenuPrimitive.Label
+    ref={ref}
+    className={cn(
+      "px-2 py-1.5 text-sm font-semibold",
+      inset && "pl-8",
+      className
+    )}
+    {...props}
+  />
+))
+DropdownMenuLabel.displayName = DropdownMenuPrimitive.Label.displayName
+
+const DropdownMenuSeparator = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <DropdownMenuPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-muted", className)}
+    {...props}
+  />
+))
+DropdownMenuSeparator.displayName = DropdownMenuPrimitive.Separator.displayName
+
+const DropdownMenuShortcut = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <span
+      className={cn("ml-auto text-xs tracking-widest opacity-60", className)}
+      {...props}
+    />
+  )
+}
+DropdownMenuShortcut.displayName = "DropdownMenuShortcut"
+
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuGroup,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuRadioGroup,
+}
+
+
+
+================================================
+FILE: src/components/ui/input-otp.tsx
+================================================
+import * as React from "react";
+import { DashIcon } from "@radix-ui/react-icons";
+import { OTPInput, OTPInputContext } from "input-otp";
+
+import { cn } from "@/lib/utils";
+
+const InputOTP = React.forwardRef<
+  React.ElementRef<typeof OTPInput>,
+  React.ComponentPropsWithoutRef<typeof OTPInput>
+>(({ className, containerClassName, ...props }, ref) => (
+  <OTPInput
+    ref={ref}
+    containerClassName={cn(
+      "flex items-center gap-2 has-[:disabled]:opacity-50",
+      containerClassName,
+    )}
+    className={cn("disabled:cursor-not-allowed", className)}
+    {...props}
+  />
+));
+InputOTP.displayName = "InputOTP";
+
+const InputOTPGroup = React.forwardRef<
+  React.ElementRef<"div">,
+  React.ComponentPropsWithoutRef<"div">
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("flex items-center", className)} {...props} />
+));
+InputOTPGroup.displayName = "InputOTPGroup";
+
+const InputOTPSlot = React.forwardRef<
+  React.ElementRef<"div">,
+  React.ComponentPropsWithoutRef<"div"> & { index: number }
+>(({ index, className, ...props }, ref) => {
+  const inputOTPContext = React.useContext(OTPInputContext);
+  const { char, hasFakeCaret, isActive } = inputOTPContext.slots[index];
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "relative flex h-9 w-9 items-center justify-center border-y border-r border-input text-sm shadow-sm transition-all first:rounded-l-md first:border-l last:rounded-r-md",
+        isActive && "z-10 ring-1 ring-ring",
+        className,
+      )}
+      {...props}
+    >
+      {char}
+      {hasFakeCaret && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="h-4 w-px animate-caret-blink bg-foreground duration-1000" />
+        </div>
+      )}
+    </div>
+  );
+});
+InputOTPSlot.displayName = "InputOTPSlot";
+
+const InputOTPSeparator = React.forwardRef<
+  React.ElementRef<"div">,
+  React.ComponentPropsWithoutRef<"div">
+>(({ ...props }, ref) => (
+  <div ref={ref} role="separator" {...props}>
+    <DashIcon />
+  </div>
+));
+InputOTPSeparator.displayName = "InputOTPSeparator";
+
+export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator };
+
+
+
+================================================
+FILE: src/components/ui/input.tsx
+================================================
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+export interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, ...props }, ref) => {
+    return (
+      <input
+        type={type}
+        className={cn(
+          "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Input.displayName = "Input"
+
+export { Input }
+
+
+
+================================================
+FILE: src/components/ui/skeleton.tsx
+================================================
+import { cn } from "@/lib/utils"
+
+function Skeleton({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn("animate-pulse rounded-md bg-primary/10", className)}
+      {...props}
+    />
+  )
+}
+
+export { Skeleton }
+
+
+
+================================================
+FILE: src/components/ui/tabs.tsx
+================================================
+import * as React from "react";
+import * as TabsPrimitive from "@radix-ui/react-tabs";
+
+import { cn } from "@/lib/utils";
+
+const Tabs = TabsPrimitive.Root;
+
+const TabsList = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.List>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.List
+    ref={ref}
+    className={cn(
+      "inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground",
+      className,
+    )}
+    {...props}
+  />
+));
+TabsList.displayName = TabsPrimitive.List.displayName;
+
+const TabsTrigger = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow",
+      className,
+    )}
+    {...props}
+  />
+));
+TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
+
+const TabsContent = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Content
+    ref={ref}
+    className={cn(
+      "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+      className,
+    )}
+    {...props}
+  />
+));
+TabsContent.displayName = TabsPrimitive.Content.displayName;
+
+export { Tabs, TabsList, TabsTrigger, TabsContent };
+
+
+
+================================================
+FILE: src/components/ui/toast.tsx
+================================================
+import * as React from "react"
+import { Cross2Icon } from "@radix-ui/react-icons"
+import * as ToastPrimitives from "@radix-ui/react-toast"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const ToastProvider = ToastPrimitives.Provider
+
+const ToastViewport = React.forwardRef<
+  React.ElementRef<typeof ToastPrimitives.Viewport>,
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport>
+>(({ className, ...props }, ref) => (
+  <ToastPrimitives.Viewport
+    ref={ref}
+    className={cn(
+      "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
+      className
+    )}
+    {...props}
+  />
+))
+ToastViewport.displayName = ToastPrimitives.Viewport.displayName
+
+const toastVariants = cva(
+  "group pointer-events-auto relative flex w-full items-center justify-between space-x-2 overflow-hidden rounded-md border p-4 pr-6 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
+  {
+    variants: {
+      variant: {
+        default: "border bg-background text-foreground",
+        destructive:
+          "destructive group border-destructive bg-destructive text-destructive-foreground",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
+
+const Toast = React.forwardRef<
+  React.ElementRef<typeof ToastPrimitives.Root>,
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
+    VariantProps<typeof toastVariants>
+>(({ className, variant, ...props }, ref) => {
+  return (
+    <ToastPrimitives.Root
+      ref={ref}
+      className={cn(toastVariants({ variant }), className)}
+      {...props}
+    />
+  )
+})
+Toast.displayName = ToastPrimitives.Root.displayName
+
+const ToastAction = React.forwardRef<
+  React.ElementRef<typeof ToastPrimitives.Action>,
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Action>
+>(({ className, ...props }, ref) => (
+  <ToastPrimitives.Action
+    ref={ref}
+    className={cn(
+      "inline-flex h-8 shrink-0 items-center justify-center rounded-md border bg-transparent px-3 text-sm font-medium transition-colors hover:bg-secondary focus:outline-none focus:ring-1 focus:ring-ring disabled:pointer-events-none disabled:opacity-50 group-[.destructive]:border-muted/40 group-[.destructive]:hover:border-destructive/30 group-[.destructive]:hover:bg-destructive group-[.destructive]:hover:text-destructive-foreground group-[.destructive]:focus:ring-destructive",
+      className
+    )}
+    {...props}
+  />
+))
+ToastAction.displayName = ToastPrimitives.Action.displayName
+
+const ToastClose = React.forwardRef<
+  React.ElementRef<typeof ToastPrimitives.Close>,
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Close>
+>(({ className, ...props }, ref) => (
+  <ToastPrimitives.Close
+    ref={ref}
+    className={cn(
+      "absolute right-1 top-1 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-1 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600",
+      className
+    )}
+    toast-close=""
+    {...props}
+  >
+    <Cross2Icon className="h-4 w-4" />
+  </ToastPrimitives.Close>
+))
+ToastClose.displayName = ToastPrimitives.Close.displayName
+
+const ToastTitle = React.forwardRef<
+  React.ElementRef<typeof ToastPrimitives.Title>,
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Title>
+>(({ className, ...props }, ref) => (
+  <ToastPrimitives.Title
+    ref={ref}
+    className={cn("text-sm font-semibold [&+div]:text-xs", className)}
+    {...props}
+  />
+))
+ToastTitle.displayName = ToastPrimitives.Title.displayName
+
+const ToastDescription = React.forwardRef<
+  React.ElementRef<typeof ToastPrimitives.Description>,
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Description>
+>(({ className, ...props }, ref) => (
+  <ToastPrimitives.Description
+    ref={ref}
+    className={cn("text-sm opacity-90", className)}
+    {...props}
+  />
+))
+ToastDescription.displayName = ToastPrimitives.Description.displayName
+
+type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>
+
+type ToastActionElement = React.ReactElement<typeof ToastAction>
+
+export {
+  type ToastProps,
+  type ToastActionElement,
+  ToastProvider,
+  ToastViewport,
+  Toast,
+  ToastTitle,
+  ToastDescription,
+  ToastClose,
+  ToastAction,
+}
+
+
+
+================================================
+FILE: src/components/ui/toaster.tsx
+================================================
+import {
+  Toast,
+  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+} from "@/components/ui/toast";
+import { useToast } from "@/components/ui/use-toast";
+
+export function Toaster() {
+  const { toasts } = useToast();
+
+  return (
+    <ToastProvider>
+      {toasts.map(function ({ id, title, description, action, ...props }) {
+        return (
+          <Toast key={id} {...props}>
+            <div className="grid gap-1">
+              {title && <ToastTitle>{title}</ToastTitle>}
+              {description && (
+                <ToastDescription>{description}</ToastDescription>
+              )}
+            </div>
+            {action}
+            <ToastClose />
+          </Toast>
+        );
+      })}
+      <ToastViewport />
+    </ToastProvider>
+  );
+}
+
+
+
+================================================
+FILE: src/components/ui/toggle-group.tsx
+================================================
+import * as React from "react"
+import * as ToggleGroupPrimitive from "@radix-ui/react-toggle-group"
+import { VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+import { toggleVariants } from "@/components/ui/toggle"
+
+const ToggleGroupContext = React.createContext<
+  VariantProps<typeof toggleVariants>
+>({
+  size: "default",
+  variant: "default",
+})
+
+const ToggleGroup = React.forwardRef<
+  React.ElementRef<typeof ToggleGroupPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> &
+    VariantProps<typeof toggleVariants>
+>(({ className, variant, size, children, ...props }, ref) => (
+  <ToggleGroupPrimitive.Root
+    ref={ref}
+    className={cn("flex items-center justify-center gap-1", className)}
+    {...props}
+  >
+    <ToggleGroupContext.Provider value={{ variant, size }}>
+      {children}
+    </ToggleGroupContext.Provider>
+  </ToggleGroupPrimitive.Root>
+))
+
+ToggleGroup.displayName = ToggleGroupPrimitive.Root.displayName
+
+const ToggleGroupItem = React.forwardRef<
+  React.ElementRef<typeof ToggleGroupPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Item> &
+    VariantProps<typeof toggleVariants>
+>(({ className, children, variant, size, ...props }, ref) => {
+  const context = React.useContext(ToggleGroupContext)
+
+  return (
+    <ToggleGroupPrimitive.Item
+      ref={ref}
+      className={cn(
+        toggleVariants({
+          variant: context.variant || variant,
+          size: context.size || size,
+        }),
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </ToggleGroupPrimitive.Item>
+  )
+})
+
+ToggleGroupItem.displayName = ToggleGroupPrimitive.Item.displayName
+
+export { ToggleGroup, ToggleGroupItem }
+
+
+
+================================================
+FILE: src/components/ui/toggle.tsx
+================================================
+/* eslint-disable react-refresh/only-export-components */
+
+import * as React from "react"
+import * as TogglePrimitive from "@radix-ui/react-toggle"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const toggleVariants = cva(
+  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground",
+  {
+    variants: {
+      variant: {
+        default: "bg-transparent",
+        outline:
+          "border border-input bg-transparent shadow-sm hover:bg-accent hover:text-accent-foreground",
+      },
+      size: {
+        default: "h-9 px-3",
+        sm: "h-8 px-2",
+        lg: "h-10 px-3",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+const Toggle = React.forwardRef<
+  React.ElementRef<typeof TogglePrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof TogglePrimitive.Root> &
+    VariantProps<typeof toggleVariants>
+>(({ className, variant, size, ...props }, ref) => (
+  <TogglePrimitive.Root
+    ref={ref}
+    className={cn(toggleVariants({ variant, size, className }))}
+    {...props}
+  />
+))
+
+Toggle.displayName = TogglePrimitive.Root.displayName
+
+export { Toggle, toggleVariants }
+
+
+
+================================================
+FILE: src/components/ui/use-toast.ts
+================================================
+// Inspired by react-hot-toast library
+import * as React from "react"
+
+import type {
+  ToastActionElement,
+  ToastProps,
+} from "@/components/ui/toast"
+
+const TOAST_LIMIT = 1
+const TOAST_REMOVE_DELAY = 1000000
+
+type ToasterToast = ToastProps & {
+  id: string
+  title?: React.ReactNode
+  description?: React.ReactNode
+  action?: ToastActionElement
+}
+
+const actionTypes = {
+  ADD_TOAST: "ADD_TOAST",
+  UPDATE_TOAST: "UPDATE_TOAST",
+  DISMISS_TOAST: "DISMISS_TOAST",
+  REMOVE_TOAST: "REMOVE_TOAST",
+} as const
+
+let count = 0
+
+function genId() {
+  count = (count + 1) % Number.MAX_VALUE
+  return count.toString()
+}
+
+type ActionType = typeof actionTypes
+
+type Action =
+  | {
+      type: ActionType["ADD_TOAST"]
+      toast: ToasterToast
+    }
+  | {
+      type: ActionType["UPDATE_TOAST"]
+      toast: Partial<ToasterToast>
+    }
+  | {
+      type: ActionType["DISMISS_TOAST"]
+      toastId?: ToasterToast["id"]
+    }
+  | {
+      type: ActionType["REMOVE_TOAST"]
+      toastId?: ToasterToast["id"]
+    }
+
+interface State {
+  toasts: ToasterToast[]
+}
+
+const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
+
+const addToRemoveQueue = (toastId: string) => {
+  if (toastTimeouts.has(toastId)) {
+    return
+  }
+
+  const timeout = setTimeout(() => {
+    toastTimeouts.delete(toastId)
+    dispatch({
+      type: "REMOVE_TOAST",
+      toastId: toastId,
+    })
+  }, TOAST_REMOVE_DELAY)
+
+  toastTimeouts.set(toastId, timeout)
+}
+
+export const reducer = (state: State, action: Action): State => {
+  switch (action.type) {
+    case "ADD_TOAST":
+      return {
+        ...state,
+        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
+      }
+
+    case "UPDATE_TOAST":
+      return {
+        ...state,
+        toasts: state.toasts.map((t) =>
+          t.id === action.toast.id ? { ...t, ...action.toast } : t
+        ),
+      }
+
+    case "DISMISS_TOAST": {
+      const { toastId } = action
+
+      // ! Side effects ! - This could be extracted into a dismissToast() action,
+      // but I'll keep it here for simplicity
+      if (toastId) {
+        addToRemoveQueue(toastId)
+      } else {
+        state.toasts.forEach((toast) => {
+          addToRemoveQueue(toast.id)
+        })
+      }
+
+      return {
+        ...state,
+        toasts: state.toasts.map((t) =>
+          t.id === toastId || toastId === undefined
+            ? {
+                ...t,
+                open: false,
+              }
+            : t
+        ),
+      }
+    }
+    case "REMOVE_TOAST":
+      if (action.toastId === undefined) {
+        return {
+          ...state,
+          toasts: [],
+        }
+      }
+      return {
+        ...state,
+        toasts: state.toasts.filter((t) => t.id !== action.toastId),
+      }
+  }
+}
+
+const listeners: Array<(state: State) => void> = []
+
+let memoryState: State = { toasts: [] }
+
+function dispatch(action: Action) {
+  memoryState = reducer(memoryState, action)
+  listeners.forEach((listener) => {
+    listener(memoryState)
+  })
+}
+
+type Toast = Omit<ToasterToast, "id">
+
+function toast({ ...props }: Toast) {
+  const id = genId()
+
+  const update = (props: ToasterToast) =>
+    dispatch({
+      type: "UPDATE_TOAST",
+      toast: { ...props, id },
+    })
+  const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
+
+  dispatch({
+    type: "ADD_TOAST",
+    toast: {
+      ...props,
+      id,
+      open: true,
+      onOpenChange: (open) => {
+        if (!open) dismiss()
+      },
+    },
+  })
+
+  return {
+    id: id,
+    dismiss,
+    update,
+  }
+}
+
+function useToast() {
+  const [state, setState] = React.useState<State>(memoryState)
+
+  React.useEffect(() => {
+    listeners.push(setState)
+    return () => {
+      const index = listeners.indexOf(setState)
+      if (index > -1) {
+        listeners.splice(index, 1)
+      }
+    }
+  }, [state])
+
+  return {
+    ...state,
+    toast,
+    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+  }
+}
+
+export { useToast, toast }
+
+
+
+================================================
+FILE: src/lib/utils.ts
+================================================
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+

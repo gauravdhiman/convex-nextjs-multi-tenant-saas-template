@@ -1,39 +1,27 @@
 "use client";
 
-import { useCurrentUser, useAuthActions } from "@convex-dev/auth/react";
+import { useAuthActions } from "@convex-dev/auth/react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export default function DashboardPage() {
-  const { isLoading, isAuthenticated } = useCurrentUser();
   const { signOut } = useAuthActions();
   const router = useRouter();
-  const currentUser = useQuery(api.users.getCurrentUserQuery);
+  const currentUser = useQuery(api.users.viewer);
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/auth");
-    }
-  }, [isLoading, isAuthenticated, router]);
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/auth");
+  };
 
-  if (isLoading) {
+  if (currentUser === undefined) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  const handleSignOut = async () => {
-    await signOut();
-    router.push("/");
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -79,7 +67,7 @@ export default function DashboardPage() {
                         {currentUser?.name}
                       </dd>
                       <dd className="text-sm text-gray-500">
-                        {currentUser?.email}
+                        {currentUser?.email || "No email"}
                       </dd>
                     </dl>
                   </div>
@@ -92,7 +80,7 @@ export default function DashboardPage() {
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <svg className={`h-8 w-8 ${currentUser?.emailVerified ? 'text-green-400' : 'text-yellow-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`h-8 w-8 ${currentUser?.emailVerificationTime ? 'text-green-400' : 'text-yellow-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
@@ -102,7 +90,7 @@ export default function DashboardPage() {
                         Email Status
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
-                        {currentUser?.emailVerified ? "Verified" : "Unverified"}
+                        {currentUser?.emailVerificationTime ? "Verified" : "Unverified"}
                       </dd>
                     </dl>
                   </div>

@@ -6,11 +6,14 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "setup:env": "node scripts/setup-env.js",
+    "setup:dev": "npm run setup:env && npx convex dev"
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.87",
     "convex": "^1.25.4",
+    "jose": "^6.0.12",
     "next": "15.4.3",
     "react": "19.1.0",
     "react-dom": "19.1.0"
