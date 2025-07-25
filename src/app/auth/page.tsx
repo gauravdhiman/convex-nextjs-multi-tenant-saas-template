@@ -14,25 +14,14 @@ export default function AuthPage() {
 
   // Debug authentication state
   useEffect(() => {
-    console.log("=== AUTH PAGE DEBUG ===");
-    console.log("currentUser:", currentUser);
-    console.log("currentUser type:", typeof currentUser);
-    console.log("Document cookies:", document.cookie);
-    console.log("LocalStorage auth keys:", Object.keys(localStorage).filter(key => key.includes('auth') || key.includes('convex')));
-    console.log("=======================");
-
     // Show loading state while undefined
     if (currentUser === undefined) {
-      console.log("Auth state is loading...");
       return;
     }
 
     // Redirect if authenticated
     if (currentUser !== null) {
-      console.log("User is authenticated, redirecting to dashboard");
       router.push("/dashboard");
-    } else {
-      console.log("User is not authenticated, staying on auth page");
     }
   }, [currentUser, router]);
 
@@ -69,28 +58,18 @@ export default function AuthPage() {
               event.preventDefault();
               const formData = new FormData(event.currentTarget);
 
-              console.log("=== SIGN IN DEBUG ===");
-              console.log("Form data:", Object.fromEntries(formData.entries()));
-              console.log("Cookies before sign in:", document.cookie);
-
               try {
                 const result = await signIn("password", formData);
-                console.log("Sign in result:", result);
-                console.log("Cookies after sign in:", document.cookie);
-                console.log("LocalStorage after sign in:", Object.keys(localStorage).filter(key => key.includes('auth') || key.includes('convex')));
 
                 // If sign in was successful, wait a moment for auth state to update, then redirect
                 if (result && result.signingIn) {
-                  console.log("Sign in successful, waiting for auth state to update...");
                   setTimeout(() => {
-                    console.log("Redirecting to dashboard...");
                     router.push("/dashboard");
                   }, 1000);
                 }
               } catch (error) {
                 console.error("Sign in error:", error);
               }
-              console.log("====================");
             }}
           >
             <div className="space-y-4">
