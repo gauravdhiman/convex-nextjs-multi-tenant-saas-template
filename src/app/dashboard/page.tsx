@@ -4,6 +4,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useRouter } from "next/navigation";
+import { AccountLinkingCheck } from "../../components/auth/AccountLinkingCheck";
 
 export default function DashboardPage() {
   const { signOut } = useAuthActions();
@@ -26,6 +27,9 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Account Linking Check */}
+      <AccountLinkingCheck />
+      
       {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

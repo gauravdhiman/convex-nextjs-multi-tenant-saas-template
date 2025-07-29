@@ -5,6 +5,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useRouter } from "next/navigation";
+import { OAuthButtons } from "../../components/auth/OAuthButtons";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -318,6 +319,7 @@ export default function AuthPage() {
                     "Sign In to Dashboard"
                   )}
                 </button>
+
               </div>
             ) : (
               // Signup Form - Single column layout
@@ -496,7 +498,7 @@ export default function AuthPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                        This will be your company's display name
+                        This will be your company&apos;s display name
                       </div>
                     </div>
                   </div>
@@ -577,10 +579,27 @@ export default function AuthPage() {
                   <p className="text-xs text-gray-500 text-center mt-3">
                     By creating an account, you agree to our Terms of Service and Privacy Policy
                   </p>
+
                 </div>
               </div>
             )}
           </form>
+
+          {/* OAuth Section - Outside of form to prevent validation conflicts */}
+          <div className="px-8 pb-8">
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              </div>
+            </div>
+
+            {/* OAuth Buttons */}
+            <OAuthButtons />
+          </div>
         </div>
 
         {/* Toggle */}

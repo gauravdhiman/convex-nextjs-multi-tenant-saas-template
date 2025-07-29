@@ -13,10 +13,10 @@ export default defineSchema({
         emailVerificationTime: v.optional(v.number()),
         phone: v.optional(v.string()),
         phoneVerificationTime: v.optional(v.number()),
-        isActive: v.boolean(),
+        isActive: v.optional(v.boolean()),
         lastLoginAt: v.optional(v.number()),
-        createdAt: v.number(),
-        updatedAt: v.number(),
+        createdAt: v.optional(v.number()),
+        updatedAt: v.optional(v.number()),
         // Custom fields for our SaaS template
         firstName: v.optional(v.string()),
         lastName: v.optional(v.string()),

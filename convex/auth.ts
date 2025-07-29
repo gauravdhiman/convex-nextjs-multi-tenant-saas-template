@@ -1,6 +1,7 @@
 import { convexAuth } from "@convex-dev/auth/server";
 import { Password } from "@convex-dev/auth/providers/Password";
 import Google from "@auth/core/providers/google";
+import LinkedIn from "@auth/core/providers/linkedin";
 import { DataModel } from "./_generated/dataModel";
 
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
@@ -23,14 +24,27 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
                 };
             },
         }),
-        Google
+        Google({
+            clientId: process.env.AUTH_GOOGLE_ID,
+            clientSecret: process.env.AUTH_GOOGLE_SECRET,
+        }),
+        LinkedIn({
+            clientId: process.env.AUTH_LINKEDIN_ID,
+            clientSecret: process.env.AUTH_LINKEDIN_SECRET,
+        })
     ],
     callbacks: {
         async afterUserCreatedOrUpdated(ctx, { userId, existingUserId, type }) {
-            // Only run this for new user signups, not existing user logins
-            if (existingUserId === null && type === "credentials") {
-                // System fields are already set in the profile function
-                // Organization creation will be handled separately in the setup page
+            // Ensure required fields are set for new users
+            if (existingUserId === null) {
+                const user = await ctx.db.get(userId);
+                if (user && (!user.isActive || !user.createdAt || !user.updatedAt)) {
+                    await ctx.db.patch(userId, {
+                        isActive: user.isActive ?? true,
+                        createdAt: user.createdAt ?? Date.now(),
+                        updatedAt: Date.now(),
+                    });
+                }
             }
         },
     },

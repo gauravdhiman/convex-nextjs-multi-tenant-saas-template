@@ -39,6 +39,8 @@ The setup script automatically configures these environment variables:
 ### Optional OAuth (Placeholders)
 - `AUTH_GOOGLE_ID` - Google OAuth Client ID
 - `AUTH_GOOGLE_SECRET` - Google OAuth Client Secret  
+- `AUTH_LINKEDIN_ID` - LinkedIn OAuth Client ID
+- `AUTH_LINKEDIN_SECRET` - LinkedIn OAuth Client Secret
 - `AUTH_GITHUB_ID` - GitHub OAuth Client ID
 - `AUTH_GITHUB_SECRET` - GitHub OAuth Client Secret
 
@@ -54,6 +56,17 @@ The setup script automatically configures these environment variables:
    ```bash
    npx convex env set AUTH_GOOGLE_ID your_google_client_id
    npx convex env set AUTH_GOOGLE_SECRET your_google_client_secret
+   ```
+
+### LinkedIn OAuth Setup
+1. Go to [LinkedIn Developer Portal](https://www.linkedin.com/developers/)
+2. Create a new app
+3. Add "Sign In with LinkedIn" product
+4. Set authorized redirect URL: `https://your-convex-site.convex.site/api/auth/callback/linkedin`
+5. Update environment variables:
+   ```bash
+   npx convex env set AUTH_LINKEDIN_ID your_linkedin_client_id
+   npx convex env set AUTH_LINKEDIN_SECRET your_linkedin_client_secret
    ```
 
 ### GitHub OAuth Setup
