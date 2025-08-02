@@ -59,7 +59,7 @@ export function AccountLinkingCheck() {
             <button
               onClick={handleLinkAccounts}
               disabled={isLinking}
-              className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700 disabled:opacity-50"
+              className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700 disabled:opacity-50 cursor-pointer"
             >
               {isLinking ? 'Linking...' : 'Link Accounts'}
             </button>

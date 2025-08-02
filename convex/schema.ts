@@ -115,4 +115,120 @@ export default defineSchema({
         .index("by_status", ["status"])
         .index("by_expires", ["expiresAt"]),
     
+    // Subscriptions table - billing and subscription management
+    subscriptions: defineTable({
+        organizationId: v.id("organizations"),
+        stripeSubscriptionId: v.string(),
+        stripeCustomerId: v.string(),
+        stripePriceId: v.string(),
+        planId: v.string(),
+        status: v.union(
+            v.literal("active"),
+            v.literal("canceled"),
+            v.literal("incomplete"),
+            v.literal("incomplete_expired"),
+            v.literal("past_due"),
+            v.literal("trialing"),
+            v.literal("unpaid")
+        ),
+        currentPeriodStart: v.number(),
+        currentPeriodEnd: v.number(),
+        cancelAtPeriodEnd: v.boolean(),
+        trialEnd: v.optional(v.number()),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_organization", ["organizationId"])
+        .index("by_stripe_subscription", ["stripeSubscriptionId"])
+        .index("by_stripe_customer", ["stripeCustomerId"])
+        .index("by_status", ["status"]),
+
+    // Subscription plans - defines available plans with features and credits
+    subscriptionPlans: defineTable({
+        planId: v.string(), // e.g., "starter", "pro", "enterprise"
+        name: v.string(),
+        description: v.string(),
+        stripePriceIdMonthly: v.string(),
+        stripePriceIdYearly: v.string(),
+        monthlyPrice: v.number(), // in cents
+        yearlyPrice: v.number(), // in cents
+        currency: v.string(),
+        creditsIncluded: v.number(), // credits included per billing period
+        features: v.array(v.string()),
+        maxUsers: v.optional(v.number()),
+        maxProjects: v.optional(v.number()),
+        isActive: v.boolean(),
+        sortOrder: v.number(),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_plan_id", ["planId"])
+        .index("by_active", ["isActive"])
+        .index("by_sort_order", ["sortOrder"]),
+
+    // Credits tracking - tracks credit usage and purchases
+    credits: defineTable({
+        organizationId: v.id("organizations"),
+        balance: v.number(), // current credit balance
+        totalEarned: v.number(), // total credits earned (from subscriptions)
+        totalPurchased: v.number(), // total credits purchased separately
+        totalUsed: v.number(), // total credits consumed
+        lastUpdated: v.number(),
+    })
+        .index("by_organization", ["organizationId"]),
+
+    // Credit transactions - audit trail for all credit changes
+    creditTransactions: defineTable({
+        organizationId: v.id("organizations"),
+        type: v.union(
+            v.literal("earned"), // from subscription renewal
+            v.literal("purchased"), // one-time credit purchase
+            v.literal("used"), // consumed by usage
+            v.literal("refunded"), // refunded credits
+            v.literal("expired"), // expired credits
+            v.literal("adjustment") // manual adjustment
+        ),
+        amount: v.number(), // positive for additions, negative for deductions
+        description: v.string(),
+        metadata: v.optional(v.object({
+            subscriptionId: v.optional(v.string()),
+            stripePaymentIntentId: v.optional(v.string()),
+            serviceUsed: v.optional(v.string()),
+            userId: v.optional(v.id("users")),
+        })),
+        createdAt: v.number(),
+    })
+        .index("by_organization", ["organizationId"])
+        .index("by_type", ["type"])
+        .index("by_created_at", ["createdAt"]),
+
+    // Credit packages - one-time credit purchases
+    creditPackages: defineTable({
+        packageId: v.string(), // e.g., "credits_100", "credits_500"
+        name: v.string(),
+        description: v.string(),
+        stripePriceId: v.string(),
+        credits: v.number(),
+        price: v.number(), // in cents
+        currency: v.string(),
+        isActive: v.boolean(),
+        sortOrder: v.number(),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_package_id", ["packageId"])
+        .index("by_active", ["isActive"])
+        .index("by_sort_order", ["sortOrder"]),
+
+    // Stripe events - webhook event tracking for idempotency
+    stripeEvents: defineTable({
+        stripeEventId: v.string(),
+        eventType: v.string(),
+        processed: v.boolean(),
+        processedAt: v.optional(v.number()),
+        data: v.any(), // store the full event data
+        createdAt: v.number(),
+    })
+        .index("by_stripe_event_id", ["stripeEventId"])
+        .index("by_processed", ["processed"]),
 });

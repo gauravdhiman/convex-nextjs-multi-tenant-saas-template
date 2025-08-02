@@ -18,6 +18,9 @@ import type * as auth from "../auth.js";
 import type * as http from "../http.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as organizations from "../organizations.js";
+import type * as seedData from "../seedData.js";
+import type * as stripe from "../stripe.js";
+import type * as subscriptions from "../subscriptions.js";
 import type * as users from "../users.js";
 
 /**
@@ -34,6 +37,9 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "lib/auth": typeof lib_auth;
   organizations: typeof organizations;
+  seedData: typeof seedData;
+  stripe: typeof stripe;
+  subscriptions: typeof subscriptions;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

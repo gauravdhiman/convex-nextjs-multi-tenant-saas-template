@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { ConvexError } from "convex/values";
 
 // Query to get organization by ID
@@ -247,3 +248,4 @@ export const removeMember = mutation({
     return { success: true };
   },
 });
+

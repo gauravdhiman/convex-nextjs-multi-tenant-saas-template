@@ -16,7 +16,10 @@
     "jose": "^6.0.12",
     "next": "15.4.3",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "stripe": "^14.21.0",
+    "@stripe/stripe-js": "^2.4.0",
+    "@stripe/react-stripe-js": "^2.8.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -27,6 +30,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.4.3",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@types/stripe": "^8.0.417"
   }
 }
