@@ -120,7 +120,7 @@ export const seedSubscriptionData = mutation({
         packageId: "credits_500",
         name: "500 Credits",
         description: "Perfect for small projects",
-        stripePriceId: "prod_Sn4JK3NSxuRuVv", // Replace with actual Stripe price ID
+        stripePriceId: "price_1RrUAcDCTx1JlMd8s8tBMvvZ", // Replace with actual Stripe price ID
         credits: 500,
         price: 1500, // $15.00
         currency: "usd",
@@ -133,7 +133,7 @@ export const seedSubscriptionData = mutation({
         packageId: "credits_1000",
         name: "1,000 Credits",
         description: "Great value for medium projects",
-        stripePriceId: "prod_Sn4LW9VLfrLMlI",
+        stripePriceId: "price_1Rs8nsDCTx1JlMd8ZxjzY8KM",
         credits: 1000,
         price: 2500, // $25.00 (better rate)
         currency: "usd",
@@ -146,7 +146,7 @@ export const seedSubscriptionData = mutation({
         packageId: "credits_2500",
         name: "2,500 Credits",
         description: "Best value for large projects",
-        stripePriceId: "prod_Sn4MM24PqgsVue",
+        stripePriceId: "price_1Rs8pBDCTx1JlMd80nKzHhtq",
         credits: 2500,
         price: 5000, // $50.00 (best rate)
         currency: "usd",
@@ -159,7 +159,7 @@ export const seedSubscriptionData = mutation({
         packageId: "credits_5000",
         name: "5,000 Credits",
         description: "Enterprise-level credit package",
-        stripePriceId: "prod_Sn4MvMpZ0eZAt0",
+        stripePriceId: "price_1Rs8pUDCTx1JlMd8KXqYMdi8",
         credits: 5000,
         price: 9000, // $90.00 (enterprise rate)
         currency: "usd",

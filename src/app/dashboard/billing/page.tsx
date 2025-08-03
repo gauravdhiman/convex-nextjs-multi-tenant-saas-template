@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -12,9 +12,12 @@ import CreditHistory from "../../../components/billing/CreditHistory";
 import CreditUsageDemo from "../../../components/demo/CreditUsageDemo";
 import SetupOrganization from "../../../components/setup/SetupOrganization";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
+import SubscriptionVerificationModal from "../../../components/billing/SubscriptionVerificationModal";
 
 export default function BillingPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "plans" | "credits" | "history" | "demo">("overview");
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   
   // Get user's organizations to find a valid organization ID
   const userOrganizations = useQuery(api.users.getUserOrganizations);
@@ -26,6 +29,28 @@ export default function BillingPage() {
     api.subscriptions.getOrganizationSubscription,
     organizationId ? { organizationId } : "skip"
   );
+
+  // Check for subscription success URL parameter and trigger verification
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const subscriptionSuccess = urlParams.get("subscription") === "success";
+      const creditsSuccess = urlParams.get("credits") === "success";
+      
+      if (subscriptionSuccess && organizationId) {
+        // Show verification modal instead of immediate success message
+        setShowVerificationModal(true);
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
+      } else if (creditsSuccess) {
+        // Credits are simpler - they're processed immediately via webhook
+        setShowSuccessMessage(true);
+        setTimeout(() => setShowSuccessMessage(false), 5000);
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+  }, [organizationId]);
 
   const tabs = [
     { id: "overview", name: "Overview", icon: "📊" },
@@ -82,7 +107,7 @@ export default function BillingPage() {
                   activeTab === tab.id
                     ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2`}
+                } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 cursor-pointer`}
               >
                 <span>{tab.icon}</span>
                 <span>{tab.name}</span>
@@ -156,24 +181,34 @@ export default function BillingPage() {
           )}
         </div>
 
-        {/* Success/Error Messages */}
-        {typeof window !== "undefined" && (
-          <>
-            {new URLSearchParams(window.location.search).get("subscription") === "success" && (
-              <div className="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
-                <strong className="font-bold">Success!</strong>
-                <span className="block sm:inline"> Your subscription has been activated.</span>
-              </div>
-            )}
-            
-            {new URLSearchParams(window.location.search).get("credits") === "success" && (
-              <div className="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
+        {/* Success Messages */}
+        {showSuccessMessage && (
+          <div className="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
+            <div className="flex items-center justify-between">
+              <div>
                 <strong className="font-bold">Success!</strong>
                 <span className="block sm:inline"> Your credits have been added.</span>
               </div>
-            )}
-          </>
+              <button
+                onClick={() => setShowSuccessMessage(false)}
+                className="ml-4 text-green-700 hover:text-green-900 cursor-pointer"
+              >
+                ×
+              </button>
+            </div>
+          </div>
         )}
+
+        {/* Subscription Verification Modal */}
+        <SubscriptionVerificationModal
+          organizationId={organizationId}
+          isOpen={showVerificationModal}
+          onClose={() => setShowVerificationModal(false)}
+          onSuccess={() => {
+            setShowSuccessMessage(true);
+            setTimeout(() => setShowSuccessMessage(false), 5000);
+          }}
+        />
       </div>
     </DashboardLayout>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 
@@ -13,14 +13,27 @@ export default function CreditPackages({ organizationId }: CreditPackagesProps) 
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
   const packages = useQuery(api.subscriptions.getCreditPackages);
-  const createCheckout = useMutation(api.subscriptions.createCreditCheckout);
+  const createCheckout = useAction(api.subscriptions.createCreditCheckout);
 
   const handlePurchase = async (packageId: string) => {
     setIsLoading(packageId);
     try {
+      // Find the package to get its details
+      const creditPackage = packages?.find(p => p.packageId === packageId);
+      if (!creditPackage) {
+        throw new Error("Credit package not found");
+      }
+
       const result = await createCheckout({
         organizationId,
         packageId,
+        creditPackage: {
+          packageId: creditPackage.packageId,
+          name: creditPackage.name,
+          stripePriceId: creditPackage.stripePriceId,
+          credits: creditPackage.credits,
+          price: creditPackage.price,
+        },
       });
       
       if (result.url) {

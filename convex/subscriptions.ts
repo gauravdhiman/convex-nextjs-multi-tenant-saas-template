@@ -323,6 +323,15 @@ export const createSubscriptionCheckout = action({
     organizationId: v.id("organizations"),
     planId: v.string(),
     interval: v.union(v.literal("month"), v.literal("year")),
+    plan: v.object({
+      planId: v.string(),
+      name: v.string(),
+      stripePriceIdMonthly: v.string(),
+      stripePriceIdYearly: v.string(),
+      monthlyPrice: v.number(),
+      yearlyPrice: v.number(),
+      creditsIncluded: v.number(),
+    }),
   },
   handler: async (ctx, args): Promise<{ url: string | null }> => {
     const userId = await getAuthUserId(ctx);
@@ -340,7 +349,7 @@ export const createSubscriptionCheckout = action({
       throw new ConvexError("Not authorized to manage subscriptions for this organization");
     }
 
-    // Get organization and plan details via internal queries
+    // Get organization details via internal query
     const organization = await ctx.runQuery(internal.stripe.getOrganization, {
       organizationId: args.organizationId,
     });
@@ -348,18 +357,10 @@ export const createSubscriptionCheckout = action({
       throw new ConvexError("Organization not found");
     }
 
-    const plan = await ctx.runQuery(internal.subscriptions.getSubscriptionPlanById, {
-      planId: args.planId,
-    });
-
-    if (!plan || !plan.isActive) {
-      throw new ConvexError("Plan not found or inactive");
-    }
-
     // Call internal action to create Stripe checkout
     return await ctx.runAction(internal.stripe.createCheckoutSession, {
       organizationId: args.organizationId,
-      plan,
+      plan: args.plan,
       interval: args.interval,
       customerId: organization.stripeCustomerId,
     });
@@ -371,6 +372,13 @@ export const createCreditCheckout = action({
   args: {
     organizationId: v.id("organizations"),
     packageId: v.string(),
+    creditPackage: v.object({
+      packageId: v.string(),
+      name: v.string(),
+      stripePriceId: v.string(),
+      credits: v.number(),
+      price: v.number(),
+    }),
   },
   handler: async (ctx, args): Promise<{ url: string | null }> => {
     const userId = await getAuthUserId(ctx);
@@ -388,7 +396,7 @@ export const createCreditCheckout = action({
       throw new ConvexError("Not authorized to purchase credits for this organization");
     }
 
-    // Get organization and package details via internal queries
+    // Get organization details via internal query
     const organization = await ctx.runQuery(internal.stripe.getOrganization, {
       organizationId: args.organizationId,
     });
@@ -396,18 +404,10 @@ export const createCreditCheckout = action({
       throw new ConvexError("Organization not found");
     }
 
-    const creditPackage = await ctx.runQuery(internal.subscriptions.getCreditPackageById, {
-      packageId: args.packageId,
-    });
-
-    if (!creditPackage || !creditPackage.isActive) {
-      throw new ConvexError("Credit package not found or inactive");
-    }
-
     // Call internal action to create Stripe checkout
     return await ctx.runAction(internal.stripe.createCreditCheckoutSession, {
       organizationId: args.organizationId,
-      creditPackage,
+      creditPackage: args.creditPackage,
       customerId: organization.stripeCustomerId,
     });
   },

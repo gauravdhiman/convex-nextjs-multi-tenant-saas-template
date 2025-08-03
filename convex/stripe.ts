@@ -260,71 +260,88 @@ export const markEventProcessed = internalMutation({
 // Internal mutation to handle subscription created/updated
 export const handleSubscriptionChange = internalMutation({
   args: {
-    stripeSubscription: v.object({
-      id: v.string(),
-      customer: v.string(),
-      status: v.string(),
-      current_period_start: v.number(),
-      current_period_end: v.number(),
-      cancel_at_period_end: v.boolean(),
-      trial_end: v.optional(v.number()),
-      items: v.object({
-        data: v.array(v.object({
-          price: v.object({
-            id: v.string(),
-          }),
-        })),
-      }),
-      metadata: v.object({
-        organizationId: v.optional(v.string()),
-        planId: v.optional(v.string()),
-      }),
-    }),
+    stripeSubscription: v.any(), // Accept the full Stripe subscription object
   },
   handler: async (ctx, args) => {
     const subscription = args.stripeSubscription;
-    const organizationId = subscription.metadata.organizationId;
+    
+    // Safely extract required fields with proper validation
+    const organizationId = subscription?.metadata?.organizationId;
+    const planId = subscription?.metadata?.planId;
+    const subscriptionId = subscription?.id;
+    const customerId = subscription?.customer;
+    const status = subscription?.status;
+    const cancelAtPeriodEnd = subscription?.cancel_at_period_end;
+    const trialEnd = subscription?.trial_end;
 
-    if (!organizationId) {
-      console.error("No organizationId in subscription metadata");
+    // Validate required fields
+    if (!organizationId || !subscriptionId || !customerId || !status) {
+      console.error("Missing required fields in subscription webhook:", {
+        organizationId: !!organizationId,
+        subscriptionId: !!subscriptionId,
+        customerId: !!customerId,
+        status: !!status,
+      });
+      return;
+    }
+
+    // Safely extract price and period information
+    const firstItem = subscription?.items?.data?.[0];
+    if (!firstItem) {
+      console.error("No subscription items found in webhook");
+      return;
+    }
+
+    const priceId = firstItem.price?.id || firstItem.plan?.id;
+    const currentPeriodStart = firstItem.current_period_start;
+    const currentPeriodEnd = firstItem.current_period_end;
+
+    if (!priceId || !currentPeriodStart || !currentPeriodEnd) {
+      console.error("Missing price or period information:", {
+        priceId: !!priceId,
+        currentPeriodStart: !!currentPeriodStart,
+        currentPeriodEnd: !!currentPeriodEnd,
+      });
       return;
     }
 
     // Check if subscription already exists
     const existingSubscription = await ctx.db
       .query("subscriptions")
-      .withIndex("by_stripe_subscription", (q) => q.eq("stripeSubscriptionId", subscription.id))
+      .withIndex("by_stripe_subscription", (q) => q.eq("stripeSubscriptionId", subscriptionId))
       .first();
 
     const subscriptionData = {
-      organizationId: organizationId as any, // TODO: Validate this is a proper organization ID
-      stripeSubscriptionId: subscription.id,
-      stripeCustomerId: subscription.customer,
-      stripePriceId: subscription.items.data[0].price.id,
-      planId: subscription.metadata.planId || "",
-      status: subscription.status as "active" | "canceled" | "incomplete" | "incomplete_expired" | "past_due" | "trialing" | "unpaid",
-      currentPeriodStart: subscription.current_period_start * 1000,
-      currentPeriodEnd: subscription.current_period_end * 1000,
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
-      trialEnd: subscription.trial_end ? subscription.trial_end * 1000 : undefined,
+      organizationId: organizationId as any,
+      stripeSubscriptionId: subscriptionId,
+      stripeCustomerId: customerId,
+      stripePriceId: priceId,
+      planId: planId || "",
+      status: status as "active" | "canceled" | "incomplete" | "incomplete_expired" | "past_due" | "trialing" | "unpaid",
+      currentPeriodStart: currentPeriodStart * 1000,
+      currentPeriodEnd: currentPeriodEnd * 1000,
+      cancelAtPeriodEnd: cancelAtPeriodEnd || false,
+      trialEnd: trialEnd ? trialEnd * 1000 : undefined,
       updatedAt: Date.now(),
     };
 
     if (existingSubscription) {
       // Update existing subscription
       await ctx.db.patch(existingSubscription._id, subscriptionData);
+      console.log(`Updated subscription: ${subscriptionId}`);
     } else {
       // Create new subscription
       await ctx.db.insert("subscriptions", {
         ...subscriptionData,
         createdAt: Date.now(),
       });
+      console.log(`Created new subscription: ${subscriptionId}`);
 
       // Add initial credits if this is a new active subscription
-      if (subscription.status === "active" && subscription.metadata.planId) {
+      if (status === "active" && planId) {
         const plan = await ctx.db
           .query("subscriptionPlans")
-          .withIndex("by_plan_id", (q) => q.eq("planId", subscription.metadata.planId!))
+          .withIndex("by_plan_id", (q) => q.eq("planId", planId))
           .first();
 
         if (plan) {
@@ -334,9 +351,12 @@ export const handleSubscriptionChange = internalMutation({
             type: "earned" as const,
             description: `Credits from ${plan.name} subscription`,
             metadata: {
-              subscriptionId: subscription.id,
+              subscriptionId: subscriptionId,
             },
           });
+          console.log(`Added ${plan.creditsIncluded} credits for subscription: ${subscriptionId}`);
+        } else {
+          console.warn(`Plan not found for planId: ${planId}`);
         }
       }
     }
@@ -346,16 +366,7 @@ export const handleSubscriptionChange = internalMutation({
 // Internal mutation to handle successful payment for credits
 export const handleCreditPurchase = internalMutation({
   args: {
-    checkoutSession: v.object({
-      id: v.string(),
-      mode: v.string(),
-      payment_intent: v.optional(v.string()),
-      metadata: v.object({
-        organizationId: v.optional(v.string()),
-        packageId: v.optional(v.string()),
-        credits: v.optional(v.string()),
-      }),
-    }),
+    checkoutSession: v.any(), // Accept full Stripe checkout session object
   },
   handler: async (ctx, args) => {
     const session = args.checkoutSession;
@@ -389,14 +400,7 @@ export const handleCreditPurchase = internalMutation({
 // Internal mutation to handle subscription renewal (add credits)
 export const handleSubscriptionRenewal = internalMutation({
   args: {
-    stripeSubscription: v.object({
-      id: v.string(),
-      status: v.string(),
-      metadata: v.object({
-        organizationId: v.optional(v.string()),
-        planId: v.optional(v.string()),
-      }),
-    }),
+    stripeSubscription: v.any(), // Accept full Stripe subscription object
   },
   handler: async (ctx, args) => {
     const subscription = args.stripeSubscription;

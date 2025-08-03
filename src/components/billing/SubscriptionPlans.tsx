@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 
@@ -15,15 +15,30 @@ export default function SubscriptionPlans({ organizationId, currentPlan }: Subsc
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
   const plans = useQuery(api.subscriptions.getSubscriptionPlans);
-  const createCheckout = useMutation(api.subscriptions.createSubscriptionCheckout);
+  const createCheckout = useAction(api.subscriptions.createSubscriptionCheckout);
 
   const handleSubscribe = async (planId: string) => {
     setIsLoading(planId);
     try {
+      // Find the plan to get its details
+      const plan = plans?.find(p => p.planId === planId);
+      if (!plan) {
+        throw new Error("Plan not found");
+      }
+
       const result = await createCheckout({
         organizationId,
         planId,
         interval: billingInterval,
+        plan: {
+          planId: plan.planId,
+          name: plan.name,
+          stripePriceIdMonthly: plan.stripePriceIdMonthly,
+          stripePriceIdYearly: plan.stripePriceIdYearly,
+          monthlyPrice: plan.monthlyPrice,
+          yearlyPrice: plan.yearlyPrice,
+          creditsIncluded: plan.creditsIncluded,
+        },
       });
       
       if (result.url) {

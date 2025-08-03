@@ -17,42 +17,6 @@ interface StripeWebhookEvent {
   };
 }
 
-interface StripeSubscription {
-  id: string;
-  customer: string;
-  status: string;
-  current_period_start: number;
-  current_period_end: number;
-  cancel_at_period_end: boolean;
-  trial_end?: number;
-  items: {
-    data: Array<{
-      price: {
-        id: string;
-      };
-    }>;
-  };
-  metadata: {
-    organizationId?: string;
-    planId?: string;
-  };
-}
-
-interface StripeCheckoutSession {
-  id: string;
-  mode: string;
-  payment_intent?: string;
-  metadata: {
-    organizationId?: string;
-    packageId?: string;
-    credits?: string;
-  };
-}
-
-interface StripeInvoice {
-  subscription?: string;
-}
-
 // Stripe webhook handler
 http.route({
   path: "/stripe/webhook",
@@ -69,6 +33,7 @@ http.route({
     }
 
     const body = await request.text();
+    console.log('Webhook Event Body >>>> ', body);
     const sig = request.headers.get("stripe-signature");
 
     if (!sig) {
@@ -79,7 +44,7 @@ http.route({
     let event: StripeWebhookEvent;
 
     try {
-      event = stripe.webhooks.constructEvent(body, sig, endpointSecret) as StripeWebhookEvent;
+      event = await stripe.webhooks.constructEventAsync(body, sig, endpointSecret) as StripeWebhookEvent;
     } catch (err) {
       const error = err as Error;
       console.error(`Webhook signature verification failed: ${error.message}`);
@@ -107,36 +72,41 @@ http.route({
 
     try {
       // Handle the event
+      console.log(`Processing webhook event: ${event.type} (${event.id})`);
+      
       switch (event.type) {
         case "customer.subscription.created":
         case "customer.subscription.updated":
-          await ctx.runMutation(internal.stripe.handleSubscriptionChange, {
-            stripeSubscription: event.data.object as StripeSubscription,
-          });
-          break;
-
         case "customer.subscription.deleted":
+          console.log(`Handling subscription event: ${event.type}`);
           await ctx.runMutation(internal.stripe.handleSubscriptionChange, {
-            stripeSubscription: event.data.object as StripeSubscription,
+            stripeSubscription: event.data.object,
           });
           break;
 
         case "invoice.payment_succeeded":
           // Handle subscription renewal
-          const invoice = event.data.object as StripeInvoice;
+          console.log("Handling invoice payment succeeded");
+          const invoice = event.data.object;
           if (invoice.subscription) {
-            const subscription = await stripe.subscriptions.retrieve(
-              invoice.subscription
-            );
-            await ctx.runMutation(internal.stripe.handleSubscriptionRenewal, {
-              stripeSubscription: subscription as StripeSubscription,
-            });
+            try {
+              const subscription = await stripe.subscriptions.retrieve(
+                invoice.subscription
+              );
+              await ctx.runMutation(internal.stripe.handleSubscriptionRenewal, {
+                stripeSubscription: subscription,
+              });
+            } catch (error) {
+              console.error("Error retrieving subscription for renewal:", error);
+              throw error;
+            }
           }
           break;
 
         case "checkout.session.completed":
-          const session = event.data.object as StripeCheckoutSession;
-          if (session.mode === "payment" && session.metadata.credits) {
+          console.log("Handling checkout session completed");
+          const session = event.data.object;
+          if (session.mode === "payment" && session.metadata?.credits) {
             // Handle credit purchase
             await ctx.runMutation(internal.stripe.handleCreditPurchase, {
               checkoutSession: session,

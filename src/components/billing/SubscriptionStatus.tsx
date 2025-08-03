@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 
@@ -17,7 +17,7 @@ export default function SubscriptionStatus({ organizationId }: SubscriptionStatu
   const subscription = useQuery(api.subscriptions.getOrganizationSubscription, {
     organizationId,
   });
-  const cancelSubscription = useMutation(api.subscriptions.cancelSubscription);
+  const cancelSubscription = useAction(api.subscriptions.cancelSubscription);
 
   const handleCancel = async () => {
     setIsLoading(true);
