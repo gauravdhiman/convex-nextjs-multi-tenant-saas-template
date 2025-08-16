@@ -42,14 +42,34 @@ export interface Credits {
   balance: number;
   totalEarned: number;
   totalPurchased: number;
+  totalBonus?: number;
+  totalRefunded?: number;
   totalUsed: number;
   lastUpdated: number;
+}
+
+export interface CreditEntry {
+  _id: Id<"creditEntries">;
+  organizationId: Id<"organizations">;
+  type: "earned" | "purchased" | "bonus" | "refunded";
+  amount: number;
+  remaining: number;
+  description: string;
+  expiresAt?: number;
+  metadata?: {
+    subscriptionId?: string;
+    stripePaymentIntentId?: string;
+    promotionCode?: string;
+    referralId?: string;
+  };
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface CreditTransaction {
   _id: Id<"creditTransactions">;
   organizationId: Id<"organizations">;
-  type: "earned" | "purchased" | "used" | "refunded" | "expired" | "adjustment";
+  type: "earned" | "purchased" | "bonus" | "used" | "refunded" | "expired" | "adjustment";
   amount: number;
   description: string;
   metadata?: {
@@ -57,6 +77,8 @@ export interface CreditTransaction {
     stripePaymentIntentId?: string;
     serviceUsed?: string;
     userId?: Id<"users">;
+    promotionCode?: string;
+    referralId?: string;
   };
   createdAt: number;
 }

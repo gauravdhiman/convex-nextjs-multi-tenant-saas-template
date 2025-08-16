@@ -80,25 +80,38 @@ export default function CreditBalance({ organizationId }: CreditBalanceProps) {
         </div>
 
         {/* Credit usage breakdown */}
-        <div className="mt-6 grid grid-cols-3 gap-4 border-t border-gray-200 pt-4">
+        <div className="mt-6 grid grid-cols-2 gap-4 border-t border-gray-200 pt-4">
           <div className="text-center">
-            <div className="text-2xl font-semibold text-gray-900">
+            <div className="text-lg font-semibold text-gray-900">
               {formatNumber(credits.totalEarned)}
             </div>
-            <div className="text-sm text-gray-500">Earned</div>
+            <div className="text-xs text-gray-500">Earned</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-semibold text-gray-900">
+            <div className="text-lg font-semibold text-gray-900">
               {formatNumber(credits.totalPurchased)}
             </div>
-            <div className="text-sm text-gray-500">Purchased</div>
+            <div className="text-xs text-gray-500">Purchased</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-semibold text-gray-900">
-              {formatNumber(credits.totalUsed)}
+            <div className="text-lg font-semibold text-gray-900">
+              {formatNumber(credits.totalBonus || 0)}
             </div>
-            <div className="text-sm text-gray-500">Used</div>
+            <div className="text-xs text-gray-500">Bonus</div>
           </div>
+          <div className="text-center">
+            <div className="text-lg font-semibold text-gray-900">
+              {formatNumber(credits.totalRefunded || 0)}
+            </div>
+            <div className="text-xs text-gray-500">Refunded</div>
+          </div>
+        </div>
+        
+        <div className="mt-4 text-center border-t border-gray-200 pt-4">
+          <div className="text-lg font-semibold text-gray-900">
+            {formatNumber(credits.totalUsed)}
+          </div>
+          <div className="text-xs text-gray-500">Total Used</div>
         </div>
 
         {/* Low balance warning */}

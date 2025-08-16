@@ -169,13 +169,43 @@ export default defineSchema({
     // Credits tracking - tracks credit usage and purchases
     credits: defineTable({
         organizationId: v.id("organizations"),
-        balance: v.number(), // current credit balance
+        balance: v.number(), // current total credit balance
         totalEarned: v.number(), // total credits earned (from subscriptions)
         totalPurchased: v.number(), // total credits purchased separately
+        totalBonus: v.optional(v.number()), // total bonus credits received
+        totalRefunded: v.optional(v.number()), // total refunded credits received
         totalUsed: v.number(), // total credits consumed
         lastUpdated: v.number(),
     })
         .index("by_organization", ["organizationId"]),
+
+    // Individual credit entries - for tracking expiration and priority consumption
+    creditEntries: defineTable({
+        organizationId: v.id("organizations"),
+        type: v.union(
+            v.literal("earned"), // from subscription renewal
+            v.literal("purchased"), // one-time credit purchase
+            v.literal("bonus"), // promotional/incentive credits
+            v.literal("refunded") // refunded credits
+        ),
+        amount: v.number(), // original amount
+        remaining: v.number(), // remaining amount (after partial consumption)
+        description: v.string(),
+        expiresAt: v.optional(v.number()), // expiration timestamp (null = never expires)
+        metadata: v.optional(v.object({
+            subscriptionId: v.optional(v.string()),
+            stripePaymentIntentId: v.optional(v.string()),
+            promotionCode: v.optional(v.string()),
+            referralId: v.optional(v.string()),
+        })),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_organization", ["organizationId"])
+        .index("by_type", ["type"])
+        .index("by_expires", ["expiresAt"])
+        .index("by_organization_expires", ["organizationId", "expiresAt"])
+        .index("by_organization_type", ["organizationId", "type"]),
 
     // Credit transactions - audit trail for all credit changes
     creditTransactions: defineTable({
@@ -183,6 +213,7 @@ export default defineSchema({
         type: v.union(
             v.literal("earned"), // from subscription renewal
             v.literal("purchased"), // one-time credit purchase
+            v.literal("bonus"), // promotional/incentive credits
             v.literal("used"), // consumed by usage
             v.literal("refunded"), // refunded credits
             v.literal("expired"), // expired credits

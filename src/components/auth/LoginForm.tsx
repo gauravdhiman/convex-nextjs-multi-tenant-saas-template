@@ -17,9 +17,7 @@ export function LoginForm() {
     setError("");
 
     try {
-      console.log("LoginForm: Attempting sign in...");
       await signIn("password", { email, password, flow: "signIn" });
-      console.log("LoginForm: Sign in completed successfully");
       // Don't set loading to false here - let the auth state change handle the redirect
     } catch (err) {
       console.error("Login error:", err);

@@ -183,26 +183,71 @@ export const createCreditCheckoutSession = internalAction({
   },
 });
 
-// Internal action to cancel subscription
+// Internal action to cancel subscription (always at period end)
 export const cancelSubscription = internalAction({
   args: {
     stripeSubscriptionId: v.string(),
-    cancelAtPeriodEnd: v.boolean(),
+    cancelAtPeriodEnd: v.boolean(), // Keep for backward compatibility but always true
   },
-  handler: async (ctx, args): Promise<{ success: boolean }> => {
+  handler: async (ctx, args): Promise<{ success: boolean; subscription: any }> => {
     const stripe = getStripe();
 
-    if (args.cancelAtPeriodEnd) {
-      // Cancel at period end
-      await stripe.subscriptions.update(args.stripeSubscriptionId, {
-        cancel_at_period_end: true,
-      });
-    } else {
-      // Cancel immediately
-      await stripe.subscriptions.cancel(args.stripeSubscriptionId);
-    }
+    // Always cancel at period end - ignore the cancelAtPeriodEnd parameter
+    const updatedSubscription = await stripe.subscriptions.update(args.stripeSubscriptionId, {
+      cancel_at_period_end: true,
+    });
 
-    return { success: true };
+    // Update local database immediately
+    await ctx.runMutation(internal.stripe.handleSubscriptionChange, {
+      stripeSubscription: updatedSubscription,
+    });
+
+    return { 
+      success: true, 
+      subscription: updatedSubscription 
+    };
+  },
+});
+
+// Internal action to re-activate subscription
+export const reactivateSubscription = internalAction({
+  args: {
+    stripeSubscriptionId: v.string(),
+  },
+  handler: async (ctx, args): Promise<{ success: boolean; subscription: any }> => {
+    const stripe = getStripe();
+
+    try {
+      // Get current subscription to validate state
+      const subscription = await stripe.subscriptions.retrieve(args.stripeSubscriptionId);
+      
+      // Validate that subscription can be reactivated
+      if (subscription.status === 'canceled') {
+        throw new ConvexError("Cannot reactivate - subscription has ended. Please create a new subscription.");
+      }
+      
+      if (!subscription.cancel_at_period_end) {
+        throw new ConvexError("Subscription is already active and not scheduled for cancellation.");
+      }
+
+      // Remove the cancellation
+      const updatedSubscription = await stripe.subscriptions.update(args.stripeSubscriptionId, {
+        cancel_at_period_end: false,
+      });
+
+      // Immediately update local database to ensure consistency
+      await ctx.runMutation(internal.stripe.handleSubscriptionChange, {
+        stripeSubscription: updatedSubscription,
+      });
+
+      return { 
+        success: true, 
+        subscription: updatedSubscription 
+      };
+    } catch (error) {
+      console.error("Failed to reactivate subscription:", error);
+      throw error;
+    }
   },
 });
 
@@ -345,11 +390,16 @@ export const handleSubscriptionChange = internalMutation({
           .first();
 
         if (plan) {
+          // Set expiration based on subscription period
+          // Get the subscription interval from the price ID or subscription data
+          const currentPeriodEnd = subscription.current_period_end * 1000; // Convert to milliseconds
+          
           await ctx.runMutation(internal.subscriptions.addCredits, {
             organizationId: organizationId as any,
             amount: plan.creditsIncluded,
             type: "earned" as const,
             description: `Credits from ${plan.name} subscription`,
+            expiresAt: currentPeriodEnd, // Credits expire at the end of current subscription period
             metadata: {
               subscriptionId: subscriptionId,
             },
@@ -418,12 +468,16 @@ export const handleSubscriptionRenewal = internalMutation({
       .first();
 
     if (plan && subscription.status === "active") {
+      // Set expiration based on subscription period for renewal credits
+      const currentPeriodEnd = subscription.current_period_end * 1000; // Convert to milliseconds
+      
       // Add credits for the new billing period
       await ctx.runMutation(internal.subscriptions.addCredits, {
         organizationId: organizationId as any,
         amount: plan.creditsIncluded,
         type: "earned" as const,
         description: `Credits from ${plan.name} subscription renewal`,
+        expiresAt: currentPeriodEnd, // Credits expire at the end of current subscription period
         metadata: {
           subscriptionId: subscription.id,
         },
